@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#24463f">
+    <title>NutriTrack</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script defer src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script defer src="/static/app.js"></script>
+  </head>
+  <body>
+    <div id="auth-screen" class="auth-screen">
+      <div class="auth-frame">
+        <section class="auth-brand" aria-labelledby="auth-title">
+          <a class="brand" href="/" aria-label="NutriTrack home">
+            <span class="brand-emblem"><i data-lucide="leaf" aria-hidden="true"></i></span>
+            <span>NutriTrack</span>
+          </a>
+          <div>
+            <p class="section-kicker">Daily nutrition</p>
+            <h1 id="auth-title">Build a healthier daily rhythm.</h1>
+            <p class="auth-copy">Plan your nutrition, keep meals in view, and stay on top of hydration.</p>
+          </div>
+          <div class="auth-stat-row" aria-label="NutriTrack focus areas">
+            <span><i data-lucide="utensils" aria-hidden="true"></i> Meals</span>
+            <span><i data-lucide="droplets" aria-hidden="true"></i> Water</span>
+            <span><i data-lucide="target" aria-hidden="true"></i> Goals</span>
+          </div>
+        </section>
+
+        <section class="auth-panel" aria-labelledby="auth-form-title">
+          <div class="auth-mode" role="tablist" aria-label="Account access">
+            <button id="login-mode" class="mode-button is-active" type="button" role="tab" aria-selected="true">Sign in</button>
+            <button id="signup-mode" class="mode-button" type="button" role="tab" aria-selected="false">Create account</button>
+          </div>
+          <div>
+            <h2 id="auth-form-title">Welcome back</h2>
+            <p id="auth-form-copy" class="muted">Use your NutriTrack account to continue.</p>
+          </div>
+          <form id="auth-form" class="form-stack">
+            <label id="full-name-field" class="field" hidden>
+              <span>Full name</span>
+              <input id="full-name" name="full_name" type="text" autocomplete="name" maxlength="120">
+            </label>
+            <label class="field">
+              <span>Email</span>
+              <input id="auth-email" name="email" type="email" autocomplete="email" required>
+            </label>
+            <label class="field">
+              <span>Password</span>
+              <input id="auth-password" name="password" type="password" autocomplete="current-password" minlength="8" required>
+            </label>
+            <p id="auth-error" class="form-error" role="alert" hidden></p>
+            <button id="auth-submit" class="primary-button" type="submit">Sign in <i data-lucide="arrow-right" aria-hidden="true"></i></button>
+          </form>
+        </section>
+      </div>
+    </div>
+
+    <div id="app-shell" class="app-shell" hidden>
+      <aside class="sidebar">
+        <a class="brand sidebar-brand" href="#dashboard" aria-label="NutriTrack dashboard">
+          <span class="brand-emblem"><i data-lucide="leaf" aria-hidden="true"></i></span>
+          <span>NutriTrack</span>
+        </a>
+        <nav class="main-nav" aria-label="Main navigation">
+          <button class="nav-button is-active" type="button" data-view="dashboard" aria-current="page"><i data-lucide="layout-dashboard" aria-hidden="true"></i><span>Dashboard</span></button>
+          <button class="nav-button" type="button" data-view="meals"><i data-lucide="utensils" aria-hidden="true"></i><span>Meals</span></button>
+          <button class="nav-button" type="button" data-view="coach"><i data-lucide="sparkles" aria-hidden="true"></i><span>AI Coach</span></button>
+          <button class="nav-button" type="button" data-view="profile"><i data-lucide="settings-2" aria-hidden="true"></i><span>My plan</span></button>
+        </nav>
+        <div class="sidebar-footer">
+          <span id="sidebar-user" class="user-email"></span>
+          <button id="logout-button" class="quiet-button" type="button"><i data-lucide="log-out" aria-hidden="true"></i><span>Sign out</span></button>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="app-header">
+          <div>
+            <p class="section-kicker">Nutrition log</p>
+            <h1 id="page-title">Today's overview</h1>
+          </div>
+          <label class="date-field" for="selected-date">
+            <span class="sr-only">Selected day</span>
+            <i data-lucide="calendar-days" aria-hidden="true"></i>
+            <input id="selected-date" type="date">
+          </label>
+        </header>
+
+        <section id="dashboard-view" class="view-section">
+          <div id="profile-prompt" class="setup-banner" hidden>
+            <div><i data-lucide="sparkles" aria-hidden="true"></i></div>
+            <p><strong>Set your daily targets.</strong> Add a few details to make today's progress personal.</p>
+            <button class="text-button" type="button" data-view="profile">Set up plan <i data-lucide="arrow-right" aria-hidden="true"></i></button>
+          </div>
+
+          <section class="summary-grid" aria-label="Daily progress">
+            <article class="metric-card calorie-card">
+              <div class="metric-topline"><span>Calories</span><i data-lucide="flame" aria-hidden="true"></i></div>
+              <p class="metric-value"><span id="calories-total">0</span><span class="metric-unit"> kcal</span></p>
+              <p id="calories-remaining" class="metric-detail">0 kcal remaining</p>
+              <div class="progress-track" aria-hidden="true"><span id="calorie-progress" class="progress-fill fill-coral"></span></div>
+            </article>
+            <article class="metric-card protein-card">
+              <div class="metric-topline"><span>Protein</span><i data-lucide="dumbbell" aria-hidden="true"></i></div>
+              <p class="metric-value"><span id="protein-total">0</span><span class="metric-unit"> g</span></p>
+              <p id="protein-goal" class="metric-detail">of 120 g goal</p>
+              <div class="progress-track" aria-hidden="true"><span id="protein-progress" class="progress-fill fill-gold"></span></div>
+            </article>
+            <article class="metric-card water-card">
+              <div class="metric-topline"><span>Water</span><i data-lucide="droplets" aria-hidden="true"></i></div>
+              <p class="metric-value"><span id="water-total">0</span><span class="metric-unit"> ml</span></p>
+              <p id="water-goal" class="metric-detail">of 2,500 ml goal</p>
+              <div class="progress-track" aria-hidden="true"><span id="water-progress" class="progress-fill fill-blue"></span></div>
+            </article>
+          </section>
+
+          <section class="dashboard-grid">
+            <article class="nutrition-panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-kicker">Macro balance</p>
+                  <h2>Today's nutrition</h2>
+                </div>
+                <button id="add-meal-button" class="primary-button compact-button" type="button"><i data-lucide="plus" aria-hidden="true"></i> Add meal</button>
+              </div>
+              <div class="macro-list">
+                <div class="macro-row">
+                  <div class="macro-label"><span class="macro-dot dot-protein"></span><span>Protein</span></div>
+                  <strong id="macro-protein">0 g</strong>
+                  <div class="progress-track"><span id="macro-protein-progress" class="progress-fill fill-gold"></span></div>
+                </div>
+                <div class="macro-row">
+                  <div class="macro-label"><span class="macro-dot dot-carbs"></span><span>Carbohydrates</span></div>
+                  <strong id="macro-carbs">0 g</strong>
+                  <div class="progress-track"><span id="macro-carbs-progress" class="progress-fill fill-green"></span></div>
+                </div>
+                <div class="macro-row">
+                  <div class="macro-label"><span class="macro-dot dot-fat"></span><span>Fat</span></div>
+                  <strong id="macro-fat">0 g</strong>
+                  <div class="progress-track"><span id="macro-fat-progress" class="progress-fill fill-coral"></span></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="water-panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-kicker">Hydration</p>
+                  <h2>Water intake</h2>
+                </div>
+                <span class="water-icon"><i data-lucide="glass-water" aria-hidden="true"></i></span>
+              </div>
+              <p id="water-summary" class="water-summary">0 of 2,500 ml</p>
+              <div class="water-actions" aria-label="Add water">
+                <button class="water-button" type="button" data-water="250">+250 ml</button>
+                <button class="water-button" type="button" data-water="500">+500 ml</button>
+              </div>
+              <button id="water-reset" class="quiet-button water-reset" type="button"><i data-lucide="rotate-ccw" aria-hidden="true"></i><span>Reset today</span></button>
+            </article>
+          </section>
+
+          <section class="meal-section" aria-labelledby="recent-meals-title">
+            <div class="panel-heading">
+              <div>
+                <p class="section-kicker">Food log</p>
+                <h2 id="recent-meals-title">Today's meals</h2>
+              </div>
+              <button class="text-button" type="button" data-view="meals">View all <i data-lucide="arrow-right" aria-hidden="true"></i></button>
+            </div>
+            <div id="recent-meals" class="meal-list"></div>
+          </section>
+        </section>
+
+        <section id="meals-view" class="view-section" hidden>
+          <div class="view-heading">
+            <div>
+              <p class="section-kicker">Food log</p>
+              <h2>Meals for this day</h2>
+            </div>
+            <button class="primary-button compact-button" type="button" data-open-meal><i data-lucide="plus" aria-hidden="true"></i> Add meal</button>
+          </div>
+          <div id="all-meals" class="meal-list full-list"></div>
+        </section>
+
+        <section id="coach-view" class="view-section coach-view" hidden>
+          <div class="view-heading">
+            <div>
+              <p class="section-kicker">Personal estimates</p>
+              <h2>AI Coach</h2>
+            </div>
+            <label class="coach-field" for="coach-equation">
+              <span>Formula setting</span>
+              <select id="coach-equation">
+                <option value="show_range">Show an estimate range</option>
+                <option value="female">Use the female equation</option>
+                <option value="male">Use the male equation</option>
+              </select>
+            </label>
+          </div>
+          <div id="coach-content" aria-live="polite"></div>
+        </section>
+
+        <section id="profile-view" class="view-section plan-view" hidden>
+          <div class="view-heading">
+            <div>
+              <p class="section-kicker">My plan</p>
+              <h2>Daily targets</h2>
+            </div>
+          </div>
+          <form id="profile-form" class="profile-form">
+            <div class="form-group">
+              <h3>About you</h3>
+              <div class="form-grid">
+                <label class="field"><span>Age</span><input id="profile-age" type="number" min="13" max="120" inputmode="numeric"></label>
+                <label class="field"><span>Height (cm)</span><input id="profile-height" type="number" min="80" max="260" step="0.1" inputmode="decimal"></label>
+                <label class="field"><span>Weight (kg)</span><input id="profile-weight" type="number" min="25" max="400" step="0.1" inputmode="decimal"></label>
+              </div>
+            </div>
+            <div class="form-group">
+              <h3>Direction</h3>
+              <div class="form-grid">
+                <label class="field"><span>Goal</span><select id="profile-goal"><option value="lose_weight">Lose weight</option><option value="maintain">Maintain weight</option><option value="build_muscle">Build muscle</option></select></label>
+                <label class="field"><span>Activity</span><select id="profile-activity"><option value="sedentary">Mostly seated</option><option value="lightly_active">Lightly active</option><option value="moderately_active">Moderately active</option><option value="very_active">Very active</option></select></label>
+              </div>
+            </div>
+            <div class="form-group">
+              <h3>Daily targets</h3>
+              <div class="form-grid">
+                <label class="field"><span>Calories</span><input id="profile-calories" type="number" min="800" max="10000" required inputmode="numeric"></label>
+                <label class="field"><span>Protein (g)</span><input id="profile-protein" type="number" min="20" max="500" step="1" required inputmode="decimal"></label>
+                <label class="field"><span>Water (ml)</span><input id="profile-water" type="number" min="500" max="10000" step="100" required inputmode="numeric"></label>
+              </div>
+            </div>
+            <p id="profile-error" class="form-error" role="alert" hidden></p>
+            <div class="form-actions"><button id="profile-save" class="primary-button" type="submit">Save daily plan <i data-lucide="check" aria-hidden="true"></i></button><p id="profile-status" class="save-status" aria-live="polite"></p></div>
+          </form>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="meal-dialog" class="meal-dialog" aria-labelledby="meal-dialog-title">
+      <form id="meal-form" method="dialog" class="dialog-form">
+        <div class="dialog-heading"><div><p class="section-kicker">Food log</p><h2 id="meal-dialog-title">Add a meal</h2></div><button id="close-meal-dialog" class="icon-button" type="button" aria-label="Close add meal dialog"><i data-lucide="x" aria-hidden="true"></i></button></div>
+        <div class="form-grid dialog-grid">
+          <label class="field field-wide"><span>Meal name</span><input id="meal-name" type="text" maxlength="120" required placeholder="e.g. Greek yogurt and berries"></label>
+          <label class="field"><span>Meal type</span><select id="meal-type"><option value="breakfast">Breakfast</option><option value="lunch">Lunch</option><option value="dinner">Dinner</option><option value="snack">Snack</option></select></label>
+          <label class="field"><span>When</span><input id="meal-time" type="datetime-local"></label>
+          <label class="field"><span>Calories</span><input id="meal-calories" type="number" min="0" max="5000" required inputmode="numeric"></label>
+          <label class="field"><span>Protein (g)</span><input id="meal-protein" type="number" min="0" max="500" step="0.1" value="0" required inputmode="decimal"></label>
+          <label class="field"><span>Carbs (g)</span><input id="meal-carbs" type="number" min="0" max="1000" step="0.1" value="0" required inputmode="decimal"></label>
+          <label class="field"><span>Fat (g)</span><input id="meal-fat" type="number" min="0" max="500" step="0.1" value="0" required inputmode="decimal"></label>
+        </div>
+        <p id="meal-error" class="form-error" role="alert" hidden></p>
+        <div class="dialog-actions"><button id="cancel-meal" class="secondary-button" type="button">Cancel</button><button id="meal-submit" class="primary-button" type="submit">Add meal <i data-lucide="plus" aria-hidden="true"></i></button></div>
+      </form>
+    </dialog>
+  </body>
+</html>
