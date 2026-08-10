@@ -3,7 +3,8 @@
 Alembic will replace this helper once the schema grows beyond simple additions.
 """
 
-from sqlalchemy import Engine, inspect, text
+from sqlalchemy import inspect, text
+from sqlalchemy.engine import Engine
 
 PROFILE_COLUMNS = {
     "gender": "VARCHAR",
