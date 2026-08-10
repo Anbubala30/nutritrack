@@ -155,7 +155,7 @@ function setView(viewName) {
 
 function defaultProfile() {
   return {
-    age: null, height_cm: null, weight_kg: null, activity_level: 'moderately_active', goal: 'maintain', calorie_goal: 2000, protein_goal_g: 120, water_goal_ml: 2500,
+    age: null, height_cm: null, weight_kg: null, gender: null, goal_weight_kg: null, dietary_preference: 'no_preference', allergies: null, activity_level: 'moderately_active', goal: 'maintain', calorie_goal: 2000, protein_goal_g: 120, water_goal_ml: 2500,
   };
 }
 
@@ -164,6 +164,10 @@ function fillProfileForm(profile) {
   document.getElementById('profile-age').value = values.age ?? '';
   document.getElementById('profile-height').value = values.height_cm ?? '';
   document.getElementById('profile-weight').value = values.weight_kg ?? '';
+  document.getElementById('profile-gender').value = values.gender ?? '';
+  document.getElementById('profile-goal-weight').value = values.goal_weight_kg ?? '';
+  document.getElementById('profile-diet').value = values.dietary_preference ?? 'no_preference';
+  document.getElementById('profile-allergies').value = values.allergies ?? '';
   document.getElementById('profile-activity').value = values.activity_level;
   document.getElementById('profile-goal').value = values.goal;
   document.getElementById('profile-calories').value = values.calorie_goal;
@@ -388,6 +392,10 @@ async function saveProfile(event) {
         age: optionalNumber('profile-age'),
         height_cm: optionalNumber('profile-height'),
         weight_kg: optionalNumber('profile-weight'),
+        gender: document.getElementById('profile-gender').value || null,
+        goal_weight_kg: optionalNumber('profile-goal-weight'),
+        dietary_preference: document.getElementById('profile-diet').value,
+        allergies: document.getElementById('profile-allergies').value.trim() || null,
         activity_level: document.getElementById('profile-activity').value,
         goal: document.getElementById('profile-goal').value,
         calorie_goal: Number(document.getElementById('profile-calories').value),

@@ -13,6 +13,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.api.routes import auth, coach, dashboard, meals, profile, water
 from app.db.database import Base, engine
+from app.db.migrations import upgrade_schema
 from app.models import meal, profile as profile_model, user, water as water_model
 
 # Creates tables based on our models if they don't exist yet.
@@ -21,6 +22,7 @@ from app.models import meal, profile as profile_model, user, water as water_mode
 # when we get there — short version: this approach can't handle changes
 # to existing tables, only creating new ones).
 Base.metadata.create_all(bind=engine)
+upgrade_schema(engine)
 
 app = FastAPI(
     title="NutriTrack AI",
