@@ -309,3 +309,38 @@ h3 { font-size: 16px; line-height: 1.3; }
 .weight-row strong { font-size: 15px; }
 .weight-row p { margin-top: 4px; color: var(--muted); font-size: 13px; }
 @media (max-width: 680px) { .weight-summary-grid, .weight-form { grid-template-columns: 1fr; } .weight-form .primary-button { width: 100%; } }
+
+
+/* Phone-first layout refinements. */
+@media (max-width: 680px) {
+  body { overflow-x: hidden; }
+  .sidebar { align-items: stretch; flex-wrap: wrap; gap: 9px; }
+  .sidebar-brand { align-self: center; }
+  .main-nav {
+    display: grid;
+    flex: 1 1 0;
+    grid-template-columns: repeat(5, minmax(42px, 1fr));
+    gap: 3px;
+  }
+  .nav-button { width: 100%; min-width: 0; }
+  .nav-button svg { width: 19px; height: 19px; }
+  .date-field { width: 100%; justify-content: space-between; }
+  .date-field input { width: min(100%, 160px); max-width: none; }
+  .summary-grid { gap: 11px; }
+  .metric-card { padding: 17px; }
+  .dashboard-grid { gap: 12px; margin-top: 12px; }
+  .meal-section { margin-top: 22px; }
+  .meal-row { padding-left: 5px; }
+  .view-heading { flex-wrap: wrap; gap: 12px; }
+  .coach-field { min-width: 0; }
+  .weight-stat { min-height: 124px; padding: 17px; }
+  .weight-value { margin-top: 13px; font-size: 27px; }
+}
+
+@media (max-width: 390px) {
+  .sidebar { padding-left: 9px; padding-right: 9px; }
+  .main-nav { grid-template-columns: repeat(5, minmax(38px, 1fr)); }
+  .nav-button { min-height: 39px; }
+  .main-content { padding-top: 22px; }
+  .water-actions { grid-template-columns: 1fr 1fr; }
+}
