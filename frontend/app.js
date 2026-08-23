@@ -4,6 +4,7 @@ const state = {
   coach: null,
   coachEquation: localStorage.getItem('nutritrack_coach_equation') || 'show_range',
   profile: null,
+  weightHistory: null,
   selectedDate: new Date().toISOString().slice(0, 10),
   token: localStorage.getItem('nutritrack_token'),
   user: null,
@@ -31,6 +32,8 @@ const elements = {
   profileStatus: document.getElementById('profile-status'),
   coachContent: document.getElementById('coach-content'),
   coachEquation: document.getElementById('coach-equation'),
+  weightForm: document.getElementById('weight-form'),
+  weightError: document.getElementById('weight-error'),
 };
 
 function refreshIcons() {
@@ -142,7 +145,7 @@ async function submitAuth(event) {
 }
 
 function setView(viewName) {
-  const titles = { dashboard: "Today's overview", meals: 'Meals', coach: 'AI Coach', profile: 'My plan' };
+  const titles = { dashboard: "Today's overview", meals: 'Meals', coach: 'AI Coach', weight: 'Weight tracker', profile: 'My plan' };
   document.querySelectorAll('.view-section').forEach((section) => { section.hidden = section.id !== `${viewName}-view`; });
   document.querySelectorAll('[data-view]').forEach((button) => {
     const active = button.dataset.view === viewName;
@@ -151,6 +154,7 @@ function setView(viewName) {
   });
   elements.pageTitle.textContent = titles[viewName];
   if (viewName === 'coach') void loadCoach();
+  if (viewName === 'weight') void loadWeightHistory();
 }
 
 function defaultProfile() {
@@ -287,6 +291,36 @@ async function loadCoach() {
     elements.coachContent.innerHTML = `<div class="coach-empty"><i data-lucide="triangle-alert" aria-hidden="true"></i><p>${escapeHtml(error.message)}</p></div>`;
     refreshIcons();
   }
+}
+
+function renderWeightHistory() {
+  const history = state.weightHistory;
+  if (!history) return;
+  const latest = history.entries[0];
+  document.getElementById('latest-weight').textContent = latest ? `${round(latest.weight_kg)} kg` : 'No entry';
+  const change = latest && history.entries[1] ? round(latest.weight_kg - history.entries[1].weight_kg) : null;
+  document.getElementById('weight-change').textContent = change === null ? 'Log your first measurement.' : `${change > 0 ? '+' : ''}${change} kg from previous entry`;
+  document.getElementById('bmi-value').textContent = history.bmi ?? '--';
+  document.getElementById('bmi-note').textContent = history.bmi_note;
+  document.getElementById('weight-list').innerHTML = history.entries.length ? history.entries.map((entry) => `<article class="weight-row"><div><strong>${round(entry.weight_kg)} kg</strong><p>${formatDate(entry.logged_on)}${entry.note ? ` · ${escapeHtml(entry.note)}` : ''}</p></div><button class="icon-button delete-weight" type="button" data-weight-id="${entry.id}" aria-label="Delete weight entry"><i data-lucide="trash-2" aria-hidden="true"></i></button></article>`).join('') : '<div class="empty-state"><span><i data-lucide="scale" aria-hidden="true"></i>No weight entries yet.</span></div>';
+  refreshIcons();
+}
+async function loadWeightHistory() {
+  try { state.weightHistory = await api('/api/weights?days=90'); renderWeightHistory(); }
+  catch (error) { setMessage(elements.weightError, error.message); }
+}
+async function saveWeight(event) {
+  event.preventDefault(); setMessage(elements.weightError);
+  const submit = document.getElementById('weight-save'); submit.disabled = true;
+  try {
+    await api('/api/weights', { method: 'PUT', body: JSON.stringify({ weight_kg: Number(document.getElementById('weight-value-input').value), logged_on: document.getElementById('weight-date').value, note: document.getElementById('weight-note').value.trim() || null }) });
+    elements.weightForm.reset(); document.getElementById('weight-date').value = state.selectedDate; await loadWeightHistory();
+  } catch (error) { setMessage(elements.weightError, error.message); }
+  finally { submit.disabled = false; }
+}
+async function deleteWeight(entryId) {
+  try { await api(`/api/weights/${entryId}`, { method: 'DELETE' }); await loadWeightHistory(); }
+  catch (error) { window.alert(error.message); }
 }
 
 async function loadApp() {
@@ -426,12 +460,16 @@ document.getElementById('close-meal-dialog').addEventListener('click', () => ele
 document.getElementById('cancel-meal').addEventListener('click', () => elements.mealDialog.close());
 elements.mealForm.addEventListener('submit', submitMeal);
 elements.profileForm.addEventListener('submit', saveProfile);
+elements.weightForm.addEventListener('submit', saveWeight);
 document.querySelectorAll('[data-water]').forEach((button) => button.addEventListener('click', () => changeWater(Number(button.dataset.water))));
 document.getElementById('water-reset').addEventListener('click', () => changeWater(-state.dashboard?.water.amount_ml || 0));
 document.addEventListener('click', (event) => {
   const button = event.target.closest('.delete-meal');
   if (button) deleteMeal(button.dataset.mealId);
+  const weightButton = event.target.closest('.delete-weight');
+  if (weightButton) deleteWeight(weightButton.dataset.weightId);
 });
 
 setAuthMode('login');
+document.getElementById('weight-date').value = state.selectedDate;
 if (state.token) loadApp(); else showAuth();
