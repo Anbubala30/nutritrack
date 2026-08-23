@@ -68,6 +68,7 @@
           <button class="nav-button is-active" type="button" data-view="dashboard" aria-current="page"><i data-lucide="layout-dashboard" aria-hidden="true"></i><span>Dashboard</span></button>
           <button class="nav-button" type="button" data-view="meals"><i data-lucide="utensils" aria-hidden="true"></i><span>Meals</span></button>
           <button class="nav-button" type="button" data-view="coach"><i data-lucide="sparkles" aria-hidden="true"></i><span>AI Coach</span></button>
+          <button class="nav-button" type="button" data-view="weight"><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i><span>Weight</span></button>
           <button class="nav-button" type="button" data-view="profile"><i data-lucide="settings-2" aria-hidden="true"></i><span>My plan</span></button>
         </nav>
         <div class="sidebar-footer">
@@ -201,6 +202,22 @@
             </label>
           </div>
           <div id="coach-content" aria-live="polite"></div>
+        </section>
+
+        <section id="weight-view" class="view-section weight-view" hidden>
+          <div class="view-heading"><div><p class="section-kicker">Body progress</p><h2>Weight tracker</h2></div></div>
+          <section class="weight-summary-grid">
+            <article class="weight-stat"><p class="section-kicker">Latest weight</p><p id="latest-weight" class="weight-value">No entry</p><p id="weight-change" class="metric-detail">Log your first measurement.</p></article>
+            <article class="weight-stat"><p class="section-kicker">BMI</p><p id="bmi-value" class="weight-value">--</p><p id="bmi-note" class="metric-detail">Add height in My plan.</p></article>
+          </section>
+          <form id="weight-form" class="weight-form">
+            <label class="field"><span>Date</span><input id="weight-date" type="date" required></label>
+            <label class="field"><span>Weight (kg)</span><input id="weight-value-input" type="number" min="25" max="400" step="0.1" required inputmode="decimal"></label>
+            <label class="field"><span>Note (optional)</span><input id="weight-note" type="text" maxlength="300" placeholder="e.g. morning measurement"></label>
+            <button id="weight-save" class="primary-button compact-button" type="submit"><i data-lucide="save" aria-hidden="true"></i> Save weight</button>
+          </form>
+          <p id="weight-error" class="form-error" role="alert" hidden></p>
+          <section class="weight-history"><div class="panel-heading"><div><p class="section-kicker">History</p><h3>Recent entries</h3></div></div><div id="weight-list" class="weight-list"></div></section>
         </section>
 
         <section id="profile-view" class="view-section plan-view" hidden>
