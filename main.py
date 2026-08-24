@@ -11,10 +11,10 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.api.routes import auth, coach, dashboard, meals, profile, water, weights
+from app.api.routes import activities, auth, coach, dashboard, meals, profile, water, weights
 from app.db.database import Base, engine
 from app.db.migrations import upgrade_schema
-from app.models import meal, profile as profile_model, user, water as water_model, weight
+from app.models import activity, meal, profile as profile_model, user, water as water_model, weight
 
 # Creates tables based on our models if they don't exist yet.
 # NOTE: This is fine for early development. Once the schema stabilizes,
@@ -32,6 +32,7 @@ app = FastAPI(
 
 app.include_router(auth.router)
 app.include_router(profile.router)
+app.include_router(activities.router)
 app.include_router(meals.router)
 app.include_router(water.router)
 app.include_router(weights.router)

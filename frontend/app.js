@@ -5,6 +5,7 @@ const state = {
   coachEquation: localStorage.getItem('nutritrack_coach_equation') || 'show_range',
   profile: null,
   weightHistory: null,
+  activityHistory: null,
   selectedDate: new Date().toISOString().slice(0, 10),
   token: localStorage.getItem('nutritrack_token'),
   user: null,
@@ -34,6 +35,8 @@ const elements = {
   coachEquation: document.getElementById('coach-equation'),
   weightForm: document.getElementById('weight-form'),
   weightError: document.getElementById('weight-error'),
+  activityForm: document.getElementById('activity-form'),
+  activityError: document.getElementById('activity-error'),
 };
 
 function refreshIcons() {
@@ -145,7 +148,7 @@ async function submitAuth(event) {
 }
 
 function setView(viewName) {
-  const titles = { dashboard: "Today's overview", meals: 'Meals', coach: 'AI Coach', weight: 'Weight tracker', profile: 'My plan' };
+  const titles = { dashboard: "Today's overview", meals: 'Meals', coach: 'AI Coach', activity: 'Activity tracker', weight: 'Weight tracker', profile: 'My plan' };
   document.querySelectorAll('.view-section').forEach((section) => { section.hidden = section.id !== `${viewName}-view`; });
   document.querySelectorAll('[data-view]').forEach((button) => {
     const active = button.dataset.view === viewName;
@@ -154,6 +157,7 @@ function setView(viewName) {
   });
   elements.pageTitle.textContent = titles[viewName];
   if (viewName === 'coach') void loadCoach();
+  if (viewName === 'activity') void loadActivityHistory();
   if (viewName === 'weight') void loadWeightHistory();
 }
 
@@ -323,6 +327,61 @@ async function deleteWeight(entryId) {
   catch (error) { window.alert(error.message); }
 }
 
+function renderActivityHistory() {
+  const history = state.activityHistory;
+  if (!history) return;
+  document.getElementById('activity-minutes-total').textContent = `${history.total_minutes.toLocaleString()} min`;
+  document.getElementById('activity-calories-total').textContent = `${history.total_calories_burned.toLocaleString()} kcal`;
+  document.getElementById('activity-list').innerHTML = history.entries.length
+    ? history.entries.map((entry) => `<article class="activity-row"><div><strong>${escapeHtml(entry.activity_type)}</strong><p>${entry.minutes} min · ${entry.calories_burned} kcal${entry.note ? ` · ${escapeHtml(entry.note)}` : ''}</p></div><button class="icon-button delete-activity" type="button" data-activity-id="${entry.id}" aria-label="Delete activity entry"><i data-lucide="trash-2" aria-hidden="true"></i></button></article>`).join('')
+    : '<div class="empty-state"><span><i data-lucide="person-standing" aria-hidden="true"></i>No activity logged for this day.</span></div>';
+  refreshIcons();
+}
+
+async function loadActivityHistory() {
+  try {
+    state.activityHistory = await api(`/api/activities?logged_on=${encodeURIComponent(state.selectedDate)}`);
+    renderActivityHistory();
+  } catch (error) {
+    setMessage(elements.activityError, error.message);
+  }
+}
+
+async function saveActivity(event) {
+  event.preventDefault();
+  setMessage(elements.activityError);
+  const submit = document.getElementById('activity-save');
+  submit.disabled = true;
+  try {
+    await api('/api/activities', {
+      method: 'POST',
+      body: JSON.stringify({
+        activity_type: document.getElementById('activity-type').value.trim(),
+        minutes: Number(document.getElementById('activity-minutes').value),
+        calories_burned: Number(document.getElementById('activity-calories').value),
+        logged_on: state.selectedDate,
+        note: document.getElementById('activity-note').value.trim() || null,
+      }),
+    });
+    elements.activityForm.reset();
+    document.getElementById('activity-calories').value = '0';
+    await loadActivityHistory();
+  } catch (error) {
+    setMessage(elements.activityError, error.message);
+  } finally {
+    submit.disabled = false;
+  }
+}
+
+async function deleteActivity(entryId) {
+  try {
+    await api(`/api/activities/${entryId}`, { method: 'DELETE' });
+    await loadActivityHistory();
+  } catch (error) {
+    window.alert(error.message);
+  }
+}
+
 async function loadApp() {
   try {
     const [user, profile] = await Promise.all([api('/auth/me'), api('/api/profile')]);
@@ -451,7 +510,7 @@ document.getElementById('login-mode').addEventListener('click', () => setAuthMod
 document.getElementById('signup-mode').addEventListener('click', () => setAuthMode('signup'));
 elements.authForm.addEventListener('submit', submitAuth);
 document.getElementById('logout-button').addEventListener('click', logout);
-elements.selectedDate.addEventListener('change', async (event) => { state.selectedDate = event.target.value; await loadDashboard(); if (!document.getElementById('coach-view').hidden) await loadCoach(); });
+elements.selectedDate.addEventListener('change', async (event) => { state.selectedDate = event.target.value; await loadDashboard(); if (!document.getElementById('coach-view').hidden) await loadCoach(); if (!document.getElementById('activity-view').hidden) await loadActivityHistory(); });
 document.querySelectorAll('[data-view]').forEach((button) => button.addEventListener('click', () => setView(button.dataset.view)));
 elements.coachEquation.addEventListener('change', async (event) => { state.coachEquation = event.target.value; localStorage.setItem('nutritrack_coach_equation', state.coachEquation); await loadCoach(); });
 document.getElementById('add-meal-button').addEventListener('click', openMealDialog);
@@ -461,6 +520,7 @@ document.getElementById('cancel-meal').addEventListener('click', () => elements.
 elements.mealForm.addEventListener('submit', submitMeal);
 elements.profileForm.addEventListener('submit', saveProfile);
 elements.weightForm.addEventListener('submit', saveWeight);
+elements.activityForm.addEventListener('submit', saveActivity);
 document.querySelectorAll('[data-water]').forEach((button) => button.addEventListener('click', () => changeWater(Number(button.dataset.water))));
 document.getElementById('water-reset').addEventListener('click', () => changeWater(-state.dashboard?.water.amount_ml || 0));
 document.addEventListener('click', (event) => {
@@ -468,6 +528,8 @@ document.addEventListener('click', (event) => {
   if (button) deleteMeal(button.dataset.mealId);
   const weightButton = event.target.closest('.delete-weight');
   if (weightButton) deleteWeight(weightButton.dataset.weightId);
+  const activityButton = event.target.closest('.delete-activity');
+  if (activityButton) deleteActivity(activityButton.dataset.activityId);
 });
 
 setAuthMode('login');

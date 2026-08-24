@@ -349,3 +349,27 @@ h3 { font-size: 16px; line-height: 1.3; }
 [hidden] {
   display: none !important;
 }
+
+.activity-view { max-width: 980px; }
+.activity-summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; }
+.activity-stat { min-height: 140px; padding: 20px; border: 1px solid var(--line); border-radius: 7px; background: var(--paper); }
+.activity-value { margin-top: 18px; font-size: 30px; font-weight: 780; }
+.activity-form { display: grid; grid-template-columns: minmax(150px, 1.2fr) minmax(110px, .6fr) minmax(150px, .8fr) minmax(180px, 1.2fr) auto; align-items: end; gap: 14px; margin-top: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
+.activity-history { margin-top: 25px; }
+.activity-list { display: grid; border-top: 2px solid var(--ink); }
+.activity-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 66px; border-bottom: 1px solid var(--line); }
+.activity-row strong { font-size: 15px; }
+.activity-row p { margin-top: 4px; color: var(--muted); font-size: 13px; }
+
+@media (max-width: 680px) {
+  .main-nav { grid-template-columns: repeat(6, minmax(38px, 1fr)); }
+  .activity-summary-grid, .activity-form { grid-template-columns: 1fr; }
+  .activity-form .primary-button { width: 100%; }
+  .activity-stat { min-height: 120px; padding: 17px; }
+  .activity-value { margin-top: 13px; font-size: 27px; }
+}
+
+@media (max-width: 390px) {
+  .main-nav { grid-template-columns: repeat(6, minmax(34px, 1fr)); }
+}
+
