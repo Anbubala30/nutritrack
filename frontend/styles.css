@@ -373,3 +373,21 @@ h3 { font-size: 16px; line-height: 1.3; }
   .main-nav { grid-template-columns: repeat(6, minmax(34px, 1fr)); }
 }
 
+.weekly-section { margin-top: 30px; }
+.weekly-summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; margin-top: 17px; }
+.weekly-stat { min-height: 128px; padding: 18px; border: 1px solid var(--line); border-radius: 7px; background: var(--paper); }
+.weekly-value { margin-top: 16px; font-size: 26px; font-weight: 780; }
+.weekly-days { display: grid; gap: 0; margin-top: 20px; border-top: 2px solid var(--ink); }
+.weekly-day { display: grid; grid-template-columns: minmax(122px, 1.3fr) repeat(3, minmax(0, 1fr)); align-items: center; gap: 12px; min-height: 54px; border-bottom: 1px solid var(--line); font-size: 13px; }
+.weekly-day-name { font-weight: 750; }
+.weekly-day-metric { color: var(--muted); text-align: right; white-space: nowrap; }
+
+@media (max-width: 680px) {
+  .weekly-summary-grid { grid-template-columns: 1fr; gap: 11px; }
+  .weekly-stat { min-height: 110px; padding: 17px; }
+  .weekly-value { margin-top: 12px; font-size: 25px; }
+  .weekly-day { grid-template-columns: 1fr 1fr; gap: 5px 12px; padding: 11px 0; }
+  .weekly-day-name { grid-column: 1 / -1; }
+  .weekly-day-metric { text-align: left; }
+}
+
