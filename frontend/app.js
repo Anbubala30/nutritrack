@@ -6,6 +6,7 @@ const state = {
   profile: null,
   weightHistory: null,
   activityHistory: null,
+  analytics: null,
   selectedDate: new Date().toISOString().slice(0, 10),
   token: localStorage.getItem('nutritrack_token'),
   user: null,
@@ -230,9 +231,36 @@ function renderDashboard() {
   refreshIcons();
 }
 
+function renderAnalytics() {
+  const analytics = state.analytics;
+  if (!analytics) return;
+  document.getElementById('weekly-calorie-average').textContent = `${analytics.average_calories.toLocaleString()} kcal`;
+  document.getElementById('weekly-water-average').textContent = `${analytics.average_water_ml.toLocaleString()} ml`;
+  document.getElementById('weekly-activity-total').textContent = `${analytics.total_activity_minutes.toLocaleString()} min`;
+  document.getElementById('weekly-burn-total').textContent = `${analytics.total_calories_burned.toLocaleString()} kcal estimated burn`;
+  document.getElementById('weekly-days').innerHTML = analytics.days.map((day) => `
+    <article class="weekly-day">
+      <strong class="weekly-day-name">${formatDate(day.logged_on)}</strong>
+      <span class="weekly-day-metric">${day.calories.toLocaleString()} kcal</span>
+      <span class="weekly-day-metric">${round(day.protein_g)} g protein</span>
+      <span class="weekly-day-metric">${day.water_ml.toLocaleString()} ml water · ${day.activity_minutes} min</span>
+    </article>
+  `).join('');
+}
+
+async function loadAnalytics() {
+  try {
+    state.analytics = await api(`/api/analytics/week?end_date=${encodeURIComponent(state.selectedDate)}`);
+    renderAnalytics();
+  } catch {
+    state.analytics = null;
+  }
+}
+
 async function loadDashboard() {
   state.dashboard = await api(`/api/dashboard?logged_on=${encodeURIComponent(state.selectedDate)}`);
   renderDashboard();
+  await loadAnalytics();
 }
 
 function formatRange(range) {
