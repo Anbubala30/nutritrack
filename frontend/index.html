@@ -68,6 +68,7 @@
           <button class="nav-button is-active" type="button" data-view="dashboard" aria-current="page"><i data-lucide="layout-dashboard" aria-hidden="true"></i><span>Dashboard</span></button>
           <button class="nav-button" type="button" data-view="meals"><i data-lucide="utensils" aria-hidden="true"></i><span>Meals</span></button>
           <button class="nav-button" type="button" data-view="coach"><i data-lucide="sparkles" aria-hidden="true"></i><span>AI Coach</span></button>
+          <button class="nav-button" type="button" data-view="activity"><i data-lucide="person-standing" aria-hidden="true"></i><span>Activity</span></button>
           <button class="nav-button" type="button" data-view="weight"><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i><span>Weight</span></button>
           <button class="nav-button" type="button" data-view="profile"><i data-lucide="settings-2" aria-hidden="true"></i><span>My plan</span></button>
         </nav>
@@ -202,6 +203,29 @@
             </label>
           </div>
           <div id="coach-content" aria-live="polite"></div>
+        </section>
+
+
+        <section id="activity-view" class="view-section activity-view" hidden>
+          <div class="view-heading">
+            <div>
+              <p class="section-kicker">Movement log</p>
+              <h2>Activity tracker</h2>
+            </div>
+          </div>
+          <section class="activity-summary-grid" aria-label="Activity totals">
+            <article class="activity-stat"><p class="section-kicker">Active time</p><p id="activity-minutes-total" class="activity-value">0 min</p><p class="metric-detail">for the selected day</p></article>
+            <article class="activity-stat"><p class="section-kicker">Energy burned</p><p id="activity-calories-total" class="activity-value">0 kcal</p><p class="metric-detail">your estimated activity total</p></article>
+          </section>
+          <form id="activity-form" class="activity-form">
+            <label class="field"><span>Activity</span><input id="activity-type" type="text" maxlength="80" required placeholder="e.g. Brisk walk"></label>
+            <label class="field"><span>Minutes</span><input id="activity-minutes" type="number" min="1" max="720" required inputmode="numeric"></label>
+            <label class="field"><span>Calories burned</span><input id="activity-calories" type="number" min="0" max="10000" value="0" required inputmode="numeric"></label>
+            <label class="field"><span>Note (optional)</span><input id="activity-note" type="text" maxlength="300" placeholder="e.g. evening walk"></label>
+            <button id="activity-save" class="primary-button compact-button" type="submit"><i data-lucide="plus" aria-hidden="true"></i> Add activity</button>
+          </form>
+          <p id="activity-error" class="form-error" role="alert" hidden></p>
+          <section class="activity-history"><div class="panel-heading"><div><p class="section-kicker">Today</p><h3>Activity log</h3></div></div><div id="activity-list" class="activity-list"></div></section>
         </section>
 
         <section id="weight-view" class="view-section weight-view" hidden>
