@@ -7,7 +7,7 @@ from app.api.deps import get_current_user
 from app.db.database import get_db
 from app.models.meal import Meal
 from app.models.user import User
-from app.schemas.meal import MealCreate, MealResponse
+from app.schemas.meal import MealCreate, MealResponse, MealSuggestion
 
 router = APIRouter(prefix="/api/meals", tags=["meals"])
 
@@ -30,6 +30,40 @@ def list_meals(
     db: Session = Depends(get_db),
 ):
     return meals_for_day(db, current_user.id, logged_on or date.today())
+
+
+@router.get("/suggestions", response_model=list[MealSuggestion])
+def recent_meal_suggestions(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    recent_meals = (
+        db.query(Meal)
+        .filter(Meal.user_id == current_user.id)
+        .order_by(Meal.logged_at.desc())
+        .limit(60)
+        .all()
+    )
+    suggestions = []
+    used_names = set()
+    for meal in recent_meals:
+        normalized_name = meal.name.strip().casefold()
+        if not normalized_name or normalized_name in used_names:
+            continue
+        used_names.add(normalized_name)
+        suggestions.append(
+            MealSuggestion(
+                name=meal.name,
+                meal_type=meal.meal_type,
+                calories=meal.calories,
+                protein_g=meal.protein_g,
+                carbs_g=meal.carbs_g,
+                fat_g=meal.fat_g,
+            )
+        )
+        if len(suggestions) == 6:
+            break
+    return suggestions
 
 
 @router.post("", response_model=MealResponse, status_code=status.HTTP_201_CREATED)
