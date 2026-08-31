@@ -412,6 +412,26 @@ function renderWeightHistory() {
   document.getElementById('weight-change').textContent = change === null ? 'Log your first measurement.' : `${change > 0 ? '+' : ''}${change} kg from previous entry`;
   document.getElementById('bmi-value').textContent = history.bmi ?? '--';
   document.getElementById('bmi-note').textContent = history.bmi_note;
+  const goalWeight = state.profile?.goal_weight_kg;
+  const goalDistance = document.getElementById('weight-goal-distance');
+  const goalNote = document.getElementById('weight-goal-note');
+  if (latest && goalWeight) {
+    const difference = round(goalWeight - latest.weight_kg);
+    if (difference === 0) {
+      goalDistance.textContent = 'Reached';
+      goalNote.textContent = 'Your latest entry matches your saved goal.';
+    } else {
+      const direction = difference < 0 ? 'to lose' : 'to gain';
+      goalDistance.textContent = `${Math.abs(difference)} kg`;
+      goalNote.textContent = `${Math.abs(difference)} kg ${direction} to reach ${round(goalWeight)} kg.`;
+    }
+  } else if (goalWeight) {
+    goalDistance.textContent = `${round(goalWeight)} kg`;
+    goalNote.textContent = 'Log a weight to see your goal distance.';
+  } else {
+    goalDistance.textContent = '--';
+    goalNote.textContent = 'Set a goal weight in My plan.';
+  }
   document.getElementById('weight-list').innerHTML = history.entries.length ? history.entries.map((entry) => `<article class="weight-row"><div><strong>${round(entry.weight_kg)} kg</strong><p>${formatDate(entry.logged_on)}${entry.note ? ` · ${escapeHtml(entry.note)}` : ''}</p></div><button class="icon-button delete-weight" type="button" data-weight-id="${entry.id}" aria-label="Delete weight entry"><i data-lucide="trash-2" aria-hidden="true"></i></button></article>`).join('') : '<div class="empty-state"><span><i data-lucide="scale" aria-hidden="true"></i>No weight entries yet.</span></div>';
   refreshIcons();
 }
