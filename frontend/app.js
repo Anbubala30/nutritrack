@@ -351,7 +351,7 @@ async function applyCoachTarget() {
   const button = document.getElementById('apply-coach-target');
   if (!calorieGoal || !state.profile || !button) return;
   button.disabled = true;
-  const previousLabel = button.textContent;
+  const previousMarkup = button.innerHTML;
   button.textContent = 'Saving...';
   try {
     const profile = state.profile;
@@ -379,7 +379,7 @@ async function applyCoachTarget() {
     button.textContent = error.message;
   } finally {
     if (document.getElementById('apply-coach-target')) {
-      document.getElementById('apply-coach-target').textContent = previousLabel;
+      document.getElementById('apply-coach-target').innerHTML = previousMarkup;
       document.getElementById('apply-coach-target').disabled = false;
       refreshIcons();
     }
