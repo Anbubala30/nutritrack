@@ -2,6 +2,7 @@ const state = {
   authMode: 'login',
   dashboard: null,
   coach: null,
+  coachCheckIn: null,
   coachEquation: localStorage.getItem('nutritrack_coach_equation') || 'show_range',
   profile: null,
   weightHistory: null,
@@ -307,6 +308,17 @@ function renderCoach() {
       <h3 id="coach-guidance-title">Coach guidance</h3>
       <div class="coach-guidance">${coach.messages.map((message) => `<div class="coach-guidance-item"><i data-lucide="circle-check" aria-hidden="true"></i><p>${escapeHtml(message)}</p></div>`).join('')}</div>
     </section>
+    <section class="coach-section coach-check-in" aria-labelledby="coach-check-in-title">
+      <h3 id="coach-check-in-title">Quick check-in</h3>
+      <div class="coach-prompt-row">
+        <button class="coach-prompt" type="button" data-coach-focus="summary">Today</button>
+        <button class="coach-prompt" type="button" data-coach-focus="protein">Protein</button>
+        <button class="coach-prompt" type="button" data-coach-focus="hydration">Water</button>
+        <button class="coach-prompt" type="button" data-coach-focus="activity">Activity</button>
+        <button class="coach-prompt" type="button" data-coach-focus="energy">Energy</button>
+      </div>
+      <p id="coach-check-in-answer" class="coach-check-in-answer" aria-live="polite">Choose a topic for a personal check-in.</p>
+    </section>
     <p class="coach-method">${escapeHtml(coach.method)}</p>
     <p class="coach-disclaimer">${escapeHtml(coach.disclaimer)}</p>`;
   refreshIcons();
@@ -322,6 +334,23 @@ async function loadCoach() {
   } catch (error) {
     elements.coachContent.innerHTML = `<div class="coach-empty"><i data-lucide="triangle-alert" aria-hidden="true"></i><p>${escapeHtml(error.message)}</p></div>`;
     refreshIcons();
+  }
+}
+
+async function loadCoachCheckIn(focus) {
+  const answer = document.getElementById('coach-check-in-answer');
+  if (!answer) return;
+  const buttons = document.querySelectorAll('[data-coach-focus]');
+  buttons.forEach((button) => { button.disabled = true; });
+  answer.textContent = 'Preparing your check-in...';
+  try {
+    const checkIn = await api(`/api/coach/check-in?focus=${encodeURIComponent(focus)}&logged_on=${encodeURIComponent(state.selectedDate)}&sex_for_equation=${encodeURIComponent(state.coachEquation)}`);
+    state.coachCheckIn = checkIn;
+    answer.textContent = checkIn.answer;
+  } catch (error) {
+    answer.textContent = error.message;
+  } finally {
+    buttons.forEach((button) => { button.disabled = false; });
   }
 }
 
@@ -558,6 +587,8 @@ document.addEventListener('click', (event) => {
   if (weightButton) deleteWeight(weightButton.dataset.weightId);
   const activityButton = event.target.closest('.delete-activity');
   if (activityButton) deleteActivity(activityButton.dataset.activityId);
+  const coachButton = event.target.closest('[data-coach-focus]');
+  if (coachButton) loadCoachCheckIn(coachButton.dataset.coachFocus);
 });
 
 setAuthMode('login');

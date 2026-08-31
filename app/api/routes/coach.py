@@ -2,15 +2,17 @@ from datetime import date, datetime, time, timedelta
 from typing import Literal
 
 from fastapi import APIRouter, Depends
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
 from app.db.database import get_db
+from app.models.activity import ActivityLog
 from app.models.meal import Meal
 from app.models.profile import UserProfile
 from app.models.user import User
 from app.models.water import WaterLog
-from app.schemas.coach import CalorieRange, CoachResponse, MacroGuidance
+from app.schemas.coach import CalorieRange, CoachCheckInResponse, CoachResponse, MacroGuidance
 
 router = APIRouter(prefix="/api/coach", tags=["coach"])
 
@@ -153,3 +155,74 @@ def read_coach(
         current_calories=current_calories,
         current_water_ml=current_water,
     )
+
+@router.get("/check-in", response_model=CoachCheckInResponse)
+def read_coach_check_in(
+    focus: Literal["summary", "protein", "hydration", "activity", "energy"] = "summary",
+    sex_for_equation: Literal["female", "male", "show_range"] = "show_range",
+    logged_on: date | None = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    logged_on = logged_on or date.today()
+    coach = read_coach(
+        sex_for_equation=sex_for_equation,
+        logged_on=logged_on,
+        current_user=current_user,
+        db=db,
+    )
+    profile = db.query(UserProfile).filter(UserProfile.user_id == current_user.id).first()
+    activity_totals = (
+        db.query(
+            func.coalesce(func.sum(ActivityLog.minutes), 0),
+            func.coalesce(func.sum(ActivityLog.calories_burned), 0),
+        )
+        .filter(ActivityLog.user_id == current_user.id, ActivityLog.logged_on == logged_on)
+        .one()
+    )
+    activity_minutes = int(activity_totals[0])
+    activity_calories = int(activity_totals[1])
+
+    if focus == "protein":
+        if profile is None:
+            answer = "Set a protein target in My plan first, then I can compare your food log with it."
+        else:
+            protein_logged = coach.macro_guidance.protein_logged_g if coach.macro_guidance else 0
+            gap = profile.protein_goal_g - protein_logged
+            answer = (
+                f"You have {round(gap, 1)} g of protein left for your saved target today."
+                if gap > 0
+                else "You have reached your saved protein target for today."
+            )
+    elif focus == "hydration":
+        if profile is None:
+            answer = f"You have logged {coach.current_water_ml:,} ml of water today. Add a water target in My plan for a personal comparison."
+        else:
+            gap = profile.water_goal_ml - coach.current_water_ml
+            answer = (
+                f"You have {gap:,} ml of water left to reach your saved target today."
+                if gap > 0
+                else "You have reached your saved water target for today."
+            )
+    elif focus == "activity":
+        answer = (
+            f"You have logged {activity_minutes} minutes of activity and about {activity_calories:,} kcal burned today."
+            if activity_minutes
+            else "No activity is logged for this day yet. Add a walk, workout, or other movement in Activity."
+        )
+    elif focus == "energy":
+        if coach.ready and coach.goal_calories:
+            answer = (
+                f"Your personal goal range is {coach.goal_calories.low:,}-{coach.goal_calories.high:,} kcal. "
+                f"You have logged {coach.current_calories:,} kcal so far today."
+            )
+        else:
+            answer = "Add your age, height, and weight in My plan to get a personal energy estimate."
+    else:
+        answer = (
+            f"Today you have logged {coach.current_calories:,} kcal, {coach.current_water_ml:,} ml of water, "
+            f"and {activity_minutes} minutes of activity."
+        )
+
+    return CoachCheckInResponse(focus=focus, answer=answer, disclaimer=DISCLAIMER)
+

@@ -28,3 +28,9 @@ class CoachResponse(BaseModel):
     macro_guidance: MacroGuidance | None = None
     current_calories: int = 0
     current_water_ml: int = 0
+
+class CoachCheckInResponse(BaseModel):
+    focus: str
+    answer: str
+    disclaimer: str
+
