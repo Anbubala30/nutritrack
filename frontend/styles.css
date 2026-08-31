@@ -607,3 +607,9 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 
 .coach-apply-target { margin-top: 14px; font-size: 13px; }
 
+.weight-summary-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+@media (max-width: 880px) and (min-width: 681px) {
+  .weight-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
