@@ -312,6 +312,10 @@
     <dialog id="meal-dialog" class="meal-dialog" aria-labelledby="meal-dialog-title">
       <form id="meal-form" method="dialog" class="dialog-form">
         <div class="dialog-heading"><div><p class="section-kicker">Food log</p><h2 id="meal-dialog-title">Add a meal</h2></div><button id="close-meal-dialog" class="icon-button" type="button" aria-label="Close add meal dialog"><i data-lucide="x" aria-hidden="true"></i></button></div>
+        <section id="meal-suggestions" class="meal-suggestions" hidden aria-labelledby="meal-suggestions-title">
+          <p id="meal-suggestions-title" class="section-kicker">Recent foods</p>
+          <div id="meal-suggestion-list" class="meal-suggestion-list"></div>
+        </section>
         <div class="form-grid dialog-grid">
           <label class="field field-wide"><span>Meal name</span><input id="meal-name" type="text" maxlength="120" required placeholder="e.g. Greek yogurt and berries"></label>
           <label class="field"><span>Meal type</span><select id="meal-type"><option value="breakfast">Breakfast</option><option value="lunch">Lunch</option><option value="dinner">Dinner</option><option value="snack">Snack</option></select></label>
