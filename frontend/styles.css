@@ -582,3 +582,26 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .calorie-card .metric-topline svg { color: var(--coral); }
 .protein-card .metric-topline svg { color: var(--gold); }
 .water-card .metric-topline svg { color: var(--blue); }
+
+.meal-suggestions { display: grid; gap: 9px; }
+.meal-suggestion-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.meal-suggestion {
+  display: grid;
+  max-width: 100%;
+  gap: 2px;
+  padding: 9px 11px;
+  border: 1px solid #c7d4ce;
+  border-radius: 5px;
+  color: var(--ink);
+  background: #f8fbf9;
+  font-size: 12px;
+  text-align: left;
+}
+.meal-suggestion strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.meal-suggestion span { color: var(--muted); font-size: 11px; }
+.meal-suggestion:hover { border-color: var(--green); background: var(--soft-green); transform: translateY(-1px); }
+
+@media (max-width: 680px) {
+  .meal-suggestion { flex: 1 1 calc(50% - 4px); }
+}
+
