@@ -21,3 +21,12 @@ class MealResponse(MealCreate):
     logged_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+class MealSuggestion(BaseModel):
+    name: str
+    meal_type: MealType
+    calories: int
+    protein_g: float
+    carbs_g: float
+    fat_g: float
+
