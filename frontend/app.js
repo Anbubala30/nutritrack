@@ -297,7 +297,7 @@ function renderCoach() {
     <section class="coach-estimate-grid" aria-label="Calorie estimates">
       <article class="coach-estimate"><p class="section-kicker">Resting estimate</p><p class="coach-estimate-value">${formatRange(coach.bmr_calories)} <span class="coach-estimate-unit">kcal</span></p><p class="coach-estimate-note">Estimated energy used at rest.</p></article>
       <article class="coach-estimate"><p class="section-kicker">Maintenance range</p><p class="coach-estimate-value">${formatRange(coach.maintenance_calories)} <span class="coach-estimate-unit">kcal</span></p><p class="coach-estimate-note">Estimated daily energy with your activity setting.</p></article>
-      <article class="coach-estimate"><p class="section-kicker">Goal range</p><p class="coach-estimate-value">${formatRange(coach.goal_calories)} <span class="coach-estimate-unit">kcal</span></p><p class="coach-estimate-note">Starting range for your selected plan.</p></article>
+      <article class="coach-estimate"><p class="section-kicker">Goal range</p><p class="coach-estimate-value">${formatRange(coach.goal_calories)} <span class="coach-estimate-unit">kcal</span></p><p class="coach-estimate-note">Starting range for your selected plan.</p><button id="apply-coach-target" class="text-button coach-apply-target" type="button">Use midpoint <i data-lucide="arrow-right" aria-hidden="true"></i></button></article>
     </section>
     <section class="coach-section" aria-labelledby="macro-guide-title">
       <h3 id="macro-guide-title">Macro guide</h3>
@@ -337,6 +337,52 @@ async function loadCoach() {
   } catch (error) {
     elements.coachContent.innerHTML = `<div class="coach-empty"><i data-lucide="triangle-alert" aria-hidden="true"></i><p>${escapeHtml(error.message)}</p></div>`;
     refreshIcons();
+  }
+}
+
+function coachTargetMidpoint() {
+  if (!state.coach?.goal_calories) return null;
+  const range = state.coach.goal_calories;
+  return Math.round(((range.low + range.high) / 2) / 50) * 50;
+}
+
+async function applyCoachTarget() {
+  const calorieGoal = coachTargetMidpoint();
+  const button = document.getElementById('apply-coach-target');
+  if (!calorieGoal || !state.profile || !button) return;
+  button.disabled = true;
+  const previousLabel = button.textContent;
+  button.textContent = 'Saving...';
+  try {
+    const profile = state.profile;
+    state.profile = await api('/api/profile', {
+      method: 'PUT',
+      body: JSON.stringify({
+        age: profile.age,
+        height_cm: profile.height_cm,
+        weight_kg: profile.weight_kg,
+        gender: profile.gender,
+        goal_weight_kg: profile.goal_weight_kg,
+        dietary_preference: profile.dietary_preference,
+        allergies: profile.allergies,
+        activity_level: profile.activity_level,
+        goal: profile.goal,
+        calorie_goal: calorieGoal,
+        protein_goal_g: profile.protein_goal_g,
+        water_goal_ml: profile.water_goal_ml,
+      }),
+    });
+    fillProfileForm(state.profile);
+    await loadDashboard();
+    await loadCoach();
+  } catch (error) {
+    button.textContent = error.message;
+  } finally {
+    if (document.getElementById('apply-coach-target')) {
+      document.getElementById('apply-coach-target').textContent = previousLabel;
+      document.getElementById('apply-coach-target').disabled = false;
+      refreshIcons();
+    }
   }
 }
 
@@ -628,6 +674,8 @@ document.addEventListener('click', (event) => {
   if (mealSuggestionButton) applyMealSuggestion(mealSuggestionButton.dataset.mealSuggestion);
   const coachButton = event.target.closest('[data-coach-focus]');
   if (coachButton) loadCoachCheckIn(coachButton.dataset.coachFocus);
+  const applyCoachTargetButton = event.target.closest('#apply-coach-target');
+  if (applyCoachTargetButton) applyCoachTarget();
 });
 
 setAuthMode('login');
