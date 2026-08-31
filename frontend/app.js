@@ -1,6 +1,7 @@
 const state = {
   authMode: 'login',
   dashboard: null,
+  mealSuggestions: [],
   coach: null,
   coachCheckIn: null,
   coachEquation: localStorage.getItem('nutritrack_coach_equation') || 'show_range',
@@ -30,6 +31,8 @@ const elements = {
   mealDialog: document.getElementById('meal-dialog'),
   mealForm: document.getElementById('meal-form'),
   mealError: document.getElementById('meal-error'),
+  mealSuggestions: document.getElementById('meal-suggestions'),
+  mealSuggestionList: document.getElementById('meal-suggestion-list'),
   profileForm: document.getElementById('profile-form'),
   profileError: document.getElementById('profile-error'),
   profileStatus: document.getElementById('profile-status'),
@@ -464,6 +467,39 @@ function logout() {
   showAuth();
 }
 
+function renderMealSuggestions() {
+  const suggestions = state.mealSuggestions;
+  elements.mealSuggestions.hidden = !suggestions.length;
+  elements.mealSuggestionList.innerHTML = suggestions.map((meal, index) => `
+    <button class="meal-suggestion" type="button" data-meal-suggestion="${index}">
+      <strong>${escapeHtml(meal.name)}</strong>
+      <span>${meal.calories} kcal · ${round(meal.protein_g)} g protein</span>
+    </button>
+  `).join('');
+}
+
+async function loadMealSuggestions() {
+  try {
+    state.mealSuggestions = await api('/api/meals/suggestions');
+    renderMealSuggestions();
+  } catch {
+    state.mealSuggestions = [];
+    renderMealSuggestions();
+  }
+}
+
+function applyMealSuggestion(index) {
+  const meal = state.mealSuggestions[Number(index)];
+  if (!meal) return;
+  document.getElementById('meal-name').value = meal.name;
+  document.getElementById('meal-type').value = meal.meal_type;
+  document.getElementById('meal-calories').value = meal.calories;
+  document.getElementById('meal-protein').value = meal.protein_g;
+  document.getElementById('meal-carbs').value = meal.carbs_g;
+  document.getElementById('meal-fat').value = meal.fat_g;
+  document.getElementById('meal-name').focus();
+}
+
 function openMealDialog() {
   setMessage(elements.mealError);
   elements.mealForm.reset();
@@ -476,6 +512,7 @@ function openMealDialog() {
   document.getElementById('meal-time').value = `${day}T${localTime}`;
   elements.mealDialog.showModal();
   document.getElementById('meal-name').focus();
+  void loadMealSuggestions();
 }
 
 async function submitMeal(event) {
@@ -587,6 +624,8 @@ document.addEventListener('click', (event) => {
   if (weightButton) deleteWeight(weightButton.dataset.weightId);
   const activityButton = event.target.closest('.delete-activity');
   if (activityButton) deleteActivity(activityButton.dataset.activityId);
+  const mealSuggestionButton = event.target.closest('[data-meal-suggestion]');
+  if (mealSuggestionButton) applyMealSuggestion(mealSuggestionButton.dataset.mealSuggestion);
   const coachButton = event.target.closest('[data-coach-focus]');
   if (coachButton) loadCoachCheckIn(coachButton.dataset.coachFocus);
 });
