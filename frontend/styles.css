@@ -605,3 +605,5 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   .meal-suggestion { flex: 1 1 calc(50% - 4px); }
 }
 
+.coach-apply-target { margin-top: 14px; font-size: 13px; }
+
