@@ -30,3 +30,13 @@ class MealSuggestion(BaseModel):
     carbs_g: float
     fat_g: float
 
+class FoodPhotoEstimate(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    meal_type: MealType
+    calories: int = Field(ge=0, le=5000)
+    protein_g: float = Field(ge=0, le=500)
+    carbs_g: float = Field(ge=0, le=1000)
+    fat_g: float = Field(ge=0, le=500)
+    confidence: Literal["low", "medium", "high"]
+    note: str = Field(max_length=500)
+
