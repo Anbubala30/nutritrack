@@ -3,11 +3,14 @@ const state = {
   dashboard: null,
   mealSuggestions: [],
   coach: null,
+  coachRequest: 0,
   coachCheckIn: null,
   coachEquation: localStorage.getItem('nutritrack_coach_equation') || 'show_range',
   profile: null,
   weightHistory: null,
+  weightRequest: 0,
   activityHistory: null,
+  activityRequest: 0,
   analytics: null,
   selectedDate: new Date().toISOString().slice(0, 10),
   token: localStorage.getItem('nutritrack_token'),
@@ -150,6 +153,11 @@ async function submitAuth(event) {
   } finally {
     submit.disabled = false;
   }
+}
+
+function setViewBusy(viewName, isBusy) {
+  const section = document.getElementById(`${viewName}-view`);
+  if (section) section.setAttribute('aria-busy', String(isBusy));
 }
 
 function setView(viewName) {
@@ -328,15 +336,22 @@ function renderCoach() {
 }
 
 async function loadCoach() {
+  const requestId = ++state.coachRequest;
   elements.coachEquation.value = state.coachEquation;
+  setViewBusy('coach', true);
   state.coach = null;
   renderCoach();
   try {
-    state.coach = await api(`/api/coach?logged_on=${encodeURIComponent(state.selectedDate)}&sex_for_equation=${encodeURIComponent(state.coachEquation)}`);
+    const coach = await api(`/api/coach?logged_on=${encodeURIComponent(state.selectedDate)}&sex_for_equation=${encodeURIComponent(state.coachEquation)}`);
+    if (requestId !== state.coachRequest) return;
+    state.coach = coach;
     renderCoach();
   } catch (error) {
+    if (requestId !== state.coachRequest) return;
     elements.coachContent.innerHTML = `<div class="coach-empty"><i data-lucide="triangle-alert" aria-hidden="true"></i><p>${escapeHtml(error.message)}</p></div>`;
     refreshIcons();
+  } finally {
+    if (requestId === state.coachRequest) setViewBusy('coach', false);
   }
 }
 
@@ -435,9 +450,25 @@ function renderWeightHistory() {
   document.getElementById('weight-list').innerHTML = history.entries.length ? history.entries.map((entry) => `<article class="weight-row"><div><strong>${round(entry.weight_kg)} kg</strong><p>${formatDate(entry.logged_on)}${entry.note ? ` · ${escapeHtml(entry.note)}` : ''}</p></div><button class="icon-button delete-weight" type="button" data-weight-id="${entry.id}" aria-label="Delete weight entry"><i data-lucide="trash-2" aria-hidden="true"></i></button></article>`).join('') : '<div class="empty-state"><span><i data-lucide="scale" aria-hidden="true"></i>No weight entries yet.</span></div>';
   refreshIcons();
 }
+function showWeightLoading() {
+  setViewBusy('weight', true);
+  document.getElementById('weight-list').innerHTML = '<div class="empty-state loading-state"><span>Loading your weight history...</span></div>';
+}
+
 async function loadWeightHistory() {
-  try { state.weightHistory = await api('/api/weights?days=90'); renderWeightHistory(); }
-  catch (error) { setMessage(elements.weightError, error.message); }
+  const requestId = ++state.weightRequest;
+  showWeightLoading();
+  try {
+    const history = await api('/api/weights?days=90');
+    if (requestId !== state.weightRequest) return;
+    state.weightHistory = history;
+    renderWeightHistory();
+  } catch (error) {
+    if (requestId !== state.weightRequest) return;
+    setMessage(elements.weightError, error.message);
+  } finally {
+    if (requestId === state.weightRequest) setViewBusy('weight', false);
+  }
 }
 async function saveWeight(event) {
   event.preventDefault(); setMessage(elements.weightError);
@@ -464,12 +495,24 @@ function renderActivityHistory() {
   refreshIcons();
 }
 
+function showActivityLoading() {
+  setViewBusy('activity', true);
+  document.getElementById('activity-list').innerHTML = '<div class="empty-state loading-state"><span>Loading your activity...</span></div>';
+}
+
 async function loadActivityHistory() {
+  const requestId = ++state.activityRequest;
+  showActivityLoading();
   try {
-    state.activityHistory = await api(`/api/activities?logged_on=${encodeURIComponent(state.selectedDate)}`);
+    const history = await api(`/api/activities?logged_on=${encodeURIComponent(state.selectedDate)}`);
+    if (requestId !== state.activityRequest) return;
+    state.activityHistory = history;
     renderActivityHistory();
   } catch (error) {
+    if (requestId !== state.activityRequest) return;
     setMessage(elements.activityError, error.message);
+  } finally {
+    if (requestId === state.activityRequest) setViewBusy('activity', false);
   }
 }
 
