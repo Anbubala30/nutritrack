@@ -2,6 +2,7 @@ const state = {
   authMode: 'login',
   dashboard: null,
   mealSuggestions: [],
+  mealPhotoPreviewUrl: null,
   coach: null,
   coachRequest: 0,
   coachCheckIn: null,
@@ -36,6 +37,11 @@ const elements = {
   mealError: document.getElementById('meal-error'),
   mealSuggestions: document.getElementById('meal-suggestions'),
   mealSuggestionList: document.getElementById('meal-suggestion-list'),
+  mealPhoto: document.getElementById('meal-photo'),
+  analyzeMealPhoto: document.getElementById('analyze-meal-photo'),
+  mealPhotoPreviewWrap: document.getElementById('meal-photo-preview-wrap'),
+  mealPhotoPreview: document.getElementById('meal-photo-preview'),
+  mealPhotoStatus: document.getElementById('meal-photo-status'),
   profileForm: document.getElementById('profile-form'),
   profileError: document.getElementById('profile-error'),
   profileStatus: document.getElementById('profile-status'),
@@ -78,7 +84,7 @@ function setMessage(element, message = '') {
 async function api(path, options = {}) {
   const headers = { ...(options.headers || {}) };
   if (state.token) headers.Authorization = `Bearer ${state.token}`;
-  if (options.body) headers['Content-Type'] = 'application/json';
+  if (options.body && !(options.body instanceof FormData)) headers['Content-Type'] = 'application/json';
 
   const response = await fetch(path, { ...options, headers });
   const contentType = response.headers.get('content-type') || '';
@@ -576,6 +582,61 @@ function logout() {
   showAuth();
 }
 
+function clearMealPhoto() {
+  if (state.mealPhotoPreviewUrl) URL.revokeObjectURL(state.mealPhotoPreviewUrl);
+  state.mealPhotoPreviewUrl = null;
+  elements.mealPhoto.value = '';
+  elements.mealPhotoPreview.removeAttribute('src');
+  elements.mealPhotoPreviewWrap.hidden = true;
+  elements.analyzeMealPhoto.disabled = true;
+  setMessage(elements.mealPhotoStatus);
+}
+
+function handleMealPhotoChange() {
+  const file = elements.mealPhoto.files?.[0];
+  setMessage(elements.mealPhotoStatus);
+  if (state.mealPhotoPreviewUrl) URL.revokeObjectURL(state.mealPhotoPreviewUrl);
+  state.mealPhotoPreviewUrl = null;
+  elements.mealPhotoPreviewWrap.hidden = true;
+  elements.analyzeMealPhoto.disabled = true;
+  if (!file) return;
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+    setMessage(elements.mealPhotoStatus, 'Choose a JPG, PNG, or WEBP food photo.');
+    return;
+  }
+  if (file.size > 8 * 1024 * 1024) {
+    setMessage(elements.mealPhotoStatus, 'Choose a photo smaller than 8 MB.');
+    return;
+  }
+  state.mealPhotoPreviewUrl = URL.createObjectURL(file);
+  elements.mealPhotoPreview.src = state.mealPhotoPreviewUrl;
+  elements.mealPhotoPreviewWrap.hidden = false;
+  elements.analyzeMealPhoto.disabled = false;
+}
+
+async function analyzeMealPhoto() {
+  const file = elements.mealPhoto.files?.[0];
+  if (!file) return;
+  elements.analyzeMealPhoto.disabled = true;
+  setMessage(elements.mealPhotoStatus, 'Analyzing your food photo...');
+  try {
+    const formData = new FormData();
+    formData.append('image', file);
+    const estimate = await api('/api/meals/analyze-photo', { method: 'POST', body: formData });
+    document.getElementById('meal-name').value = estimate.name;
+    document.getElementById('meal-type').value = estimate.meal_type;
+    document.getElementById('meal-calories').value = estimate.calories;
+    document.getElementById('meal-protein').value = estimate.protein_g;
+    document.getElementById('meal-carbs').value = estimate.carbs_g;
+    document.getElementById('meal-fat').value = estimate.fat_g;
+    setMessage(elements.mealPhotoStatus, `${estimate.confidence} confidence estimate: ${estimate.note} Review the fields before adding.`);
+  } catch (error) {
+    setMessage(elements.mealPhotoStatus, error.message);
+  } finally {
+    elements.analyzeMealPhoto.disabled = false;
+  }
+}
+
 function renderMealSuggestions() {
   const suggestions = state.mealSuggestions;
   elements.mealSuggestions.hidden = !suggestions.length;
@@ -612,6 +673,7 @@ function applyMealSuggestion(index) {
 function openMealDialog() {
   setMessage(elements.mealError);
   elements.mealForm.reset();
+  clearMealPhoto();
   document.getElementById('meal-protein').value = '0';
   document.getElementById('meal-carbs').value = '0';
   document.getElementById('meal-fat').value = '0';
@@ -721,6 +783,8 @@ document.querySelectorAll('[data-open-meal]').forEach((button) => button.addEven
 document.getElementById('close-meal-dialog').addEventListener('click', () => elements.mealDialog.close());
 document.getElementById('cancel-meal').addEventListener('click', () => elements.mealDialog.close());
 elements.mealForm.addEventListener('submit', submitMeal);
+elements.mealPhoto.addEventListener('change', handleMealPhotoChange);
+elements.analyzeMealPhoto.addEventListener('click', analyzeMealPhoto);
 elements.profileForm.addEventListener('submit', saveProfile);
 elements.weightForm.addEventListener('submit', saveWeight);
 elements.activityForm.addEventListener('submit', saveActivity);

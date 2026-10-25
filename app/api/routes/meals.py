@@ -1,13 +1,19 @@
+import asyncio
+import base64
+import json
+import re
 from datetime import date, datetime, time, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from openai import OpenAI
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
+from app.core.config import settings
 from app.db.database import get_db
 from app.models.meal import Meal
 from app.models.user import User
-from app.schemas.meal import MealCreate, MealResponse, MealSuggestion
+from app.schemas.meal import FoodPhotoEstimate, MealCreate, MealResponse, MealSuggestion
 
 router = APIRouter(prefix="/api/meals", tags=["meals"])
 
@@ -64,6 +70,71 @@ def recent_meal_suggestions(
         if len(suggestions) == 6:
             break
     return suggestions
+
+
+@router.post("/analyze-photo", response_model=FoodPhotoEstimate)
+async def analyze_food_photo(
+    image: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+):
+    del current_user  # Authentication is required even though photos are not stored.
+    if not settings.OPENAI_API_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Food photo analysis is not configured yet. Add OPENAI_API_KEY in the service environment settings.",
+        )
+    if image.content_type not in {"image/jpeg", "image/png", "image/webp"}:
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail="Choose a JPG, PNG, or WEBP food photo.",
+        )
+
+    image_bytes = await image.read()
+    if not image_bytes:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The photo file is empty.")
+    if len(image_bytes) > 8 * 1024 * 1024:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="Choose a photo smaller than 8 MB.",
+        )
+
+    data_url = f"data:{image.content_type};base64,{base64.b64encode(image_bytes).decode('ascii')}"
+    prompt = (
+        "Analyze this food photo and estimate one combined meal. Return only a JSON object with "
+        "name, meal_type, calories, protein_g, carbs_g, fat_g, confidence, and note. "
+        "meal_type must be breakfast, lunch, dinner, or snack. confidence must be low, medium, or high. "
+        "Use conservative estimates, say what is uncertain in note, and do not make medical claims."
+    )
+    try:
+        client = OpenAI(api_key=settings.OPENAI_API_KEY)
+        response = await asyncio.to_thread(
+            client.responses.create,
+            model=settings.OPENAI_VISION_MODEL,
+            input=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "input_text", "text": prompt},
+                        {"type": "input_image", "image_url": data_url, "detail": "low"},
+                    ],
+                }
+            ],
+        )
+        output = response.output_text.strip()
+        json_match = re.search(r"\{.*\}", output, re.DOTALL)
+        if not json_match:
+            raise ValueError("No JSON object was returned.")
+        return FoodPhotoEstimate.model_validate(json.loads(json_match.group(0)))
+    except Exception as error:
+        if isinstance(error, (json.JSONDecodeError, ValueError)):
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="I could not make a reliable estimate from that photo. Try a clearer food photo.",
+            ) from error
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Food photo analysis is temporarily unavailable. Try again shortly.",
+        ) from error
 
 
 @router.post("", response_model=MealResponse, status_code=status.HTTP_201_CREATED)

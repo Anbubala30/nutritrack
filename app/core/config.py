@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 1 day
 
+    # --- Optional AI photo analysis ---
+    OPENAI_API_KEY: str | None = None
+    OPENAI_VISION_MODEL: str = "gpt-6-luna"
+
     class Config:
         env_file = ".env"
 

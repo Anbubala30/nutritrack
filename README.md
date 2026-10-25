@@ -9,6 +9,7 @@ NutriTrack is a local nutrition dashboard for setting personal targets, logging 
 - Meal logging with calories, protein, carbohydrates, fat, date, and meal type
 - Daily calorie, macro, and water progress
 - An AI Coach view with calorie estimates, macro ranges, and daily coaching notes
+- Optional AI food-photo estimates that fill a reviewable meal draft
 - A responsive browser dashboard served directly by FastAPI
 
 ## Run locally
@@ -27,7 +28,7 @@ NutriTrack is a local nutrition dashboard for setting personal targets, logging 
    pip install -r requirements.txt
    ```
 
-4. Make sure `.env` contains a strong `SECRET_KEY`.
+4. Make sure `.env` contains a strong `SECRET_KEY`. To use food-photo analysis, also add `OPENAI_API_KEY`.
 5. Start the app:
 
    ```powershell
@@ -59,4 +60,5 @@ The interactive API documentation is available at `http://127.0.0.1:8000/docs` w
 - SQLite is used for local development. The database file is created automatically when the app starts.
 - Passwords are stored as bcrypt hashes, never as plain text.
 - The existing database remains intact when the new tracking tables are created.
-- Coach estimates are for adults and educational use only. They are not medical advice or a replacement for care from a clinician or dietitian.
+- Coach estimates and photo-based food estimates are educational estimates, not medical advice or a replacement for care from a clinician or dietitian.
+- Food photos are sent to the configured AI service only when the signed-in user selects Analyze. NutriTrack does not save the uploaded image.

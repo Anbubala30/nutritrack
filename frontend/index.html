@@ -313,6 +313,19 @@
     <dialog id="meal-dialog" class="meal-dialog" aria-labelledby="meal-dialog-title">
       <form id="meal-form" method="dialog" class="dialog-form">
         <div class="dialog-heading"><div><p class="section-kicker">Food log</p><h2 id="meal-dialog-title">Add a meal</h2></div><button id="close-meal-dialog" class="icon-button" type="button" aria-label="Close add meal dialog"><i data-lucide="x" aria-hidden="true"></i></button></div>
+        <section class="meal-photo-section" aria-labelledby="meal-photo-title">
+          <div class="meal-photo-heading">
+            <p id="meal-photo-title" class="section-kicker">Food photo</p>
+            <p class="meal-photo-note">Review the estimate before adding it.</p>
+          </div>
+          <div class="meal-photo-controls">
+            <label class="photo-picker" for="meal-photo"><i data-lucide="camera" aria-hidden="true"></i><span>Choose photo</span><input id="meal-photo" type="file" accept="image/jpeg,image/png,image/webp"></label>
+            <button id="analyze-meal-photo" class="secondary-button compact-button" type="button" disabled><i data-lucide="sparkles" aria-hidden="true"></i> Estimate meal</button>
+          </div>
+          <div id="meal-photo-preview-wrap" class="meal-photo-preview-wrap" hidden><img id="meal-photo-preview" class="meal-photo-preview" alt="Selected food photo preview"></div>
+          <p id="meal-photo-status" class="form-error meal-photo-status" role="status" hidden></p>
+        </section>
+
         <section id="meal-suggestions" class="meal-suggestions" hidden aria-labelledby="meal-suggestions-title">
           <p id="meal-suggestions-title" class="section-kicker">Recent foods</p>
           <div id="meal-suggestion-list" class="meal-suggestion-list"></div>
