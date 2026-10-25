@@ -613,3 +613,21 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   .weight-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
+.view-section[aria-busy="true"] { cursor: progress; }
+.loading-state span { display: inline-flex; align-items: center; gap: 9px; }
+.loading-state span::before {
+  width: 15px;
+  height: 15px;
+  border: 2px solid #bdd1c7;
+  border-top-color: var(--green);
+  border-radius: 50%;
+  content: "";
+  animation: loading-spin 700ms linear infinite;
+}
+@keyframes loading-spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading-state span::before { animation: none; }
+}
+
