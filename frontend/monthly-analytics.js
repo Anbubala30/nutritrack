@@ -1,5 +1,5 @@
 (() => {
-  const section = document.getElementById('monthly-section');
+  const section = document.getElementById('progress-view');
   if (!section) return;
 
   const range = document.getElementById('monthly-range');
