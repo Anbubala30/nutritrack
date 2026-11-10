@@ -1,5 +1,6 @@
 const state = {
   authMode: 'login',
+  theme: localStorage.getItem('nutritrack_theme') || 'light',
   dashboard: null,
   mealSuggestions: [],
   customFoods: [],
@@ -45,6 +46,7 @@ const elements = {
   authPassword: document.getElementById('auth-password'),
   fullNameField: document.getElementById('full-name-field'),
   selectedDate: document.getElementById('selected-date'),
+  themeToggle: document.getElementById('theme-toggle'),
   pageTitle: document.getElementById('page-title'),
   sidebarUser: document.getElementById('sidebar-user'),
   profilePrompt: document.getElementById('profile-prompt'),
@@ -78,6 +80,21 @@ const elements = {
 
 function refreshIcons() {
   window.lucide?.createIcons({ attrs: { width: 18, height: 18 } });
+}
+
+function setTheme(theme) {
+  state.theme = theme;
+  document.documentElement.dataset.theme = theme;
+  localStorage.setItem('nutritrack_theme', theme);
+  const isDark = theme === 'dark';
+  elements.themeToggle.setAttribute('aria-label', isDark ? 'Use light theme' : 'Use dark theme');
+  elements.themeToggle.setAttribute('title', isDark ? 'Use light theme' : 'Use dark theme');
+  elements.themeToggle.innerHTML = `<i data-lucide="${isDark ? 'sun' : 'moon'}" aria-hidden="true"></i>`;
+  refreshIcons();
+}
+
+function toggleTheme() {
+  setTheme(state.theme === 'dark' ? 'light' : 'dark');
 }
 
 function escapeHtml(value) {
@@ -911,6 +928,7 @@ async function saveProfile(event) {
 document.getElementById('login-mode').addEventListener('click', () => setAuthMode('login'));
 document.getElementById('signup-mode').addEventListener('click', () => setAuthMode('signup'));
 elements.authForm.addEventListener('submit', submitAuth);
+elements.themeToggle.addEventListener('click', toggleTheme);
 document.getElementById('logout-button').addEventListener('click', logout);
 elements.selectedDate.addEventListener('change', async (event) => { state.selectedDate = event.target.value; await loadDashboard(); if (!document.getElementById('coach-view').hidden) await loadCoach(); if (!document.getElementById('activity-view').hidden) await loadActivityHistory(); });
 document.querySelectorAll('[data-view]').forEach((button) => button.addEventListener('click', () => setView(button.dataset.view)));
@@ -953,6 +971,7 @@ document.addEventListener('click', (event) => {
 });
 
 populateQuickFoods();
+setTheme(state.theme);
 setAuthMode('login');
 document.getElementById('weight-date').value = state.selectedDate;
 if (state.token) loadApp(); else showAuth();
