@@ -319,6 +319,7 @@ async function loadDashboard() {
   state.dashboard = await api(`/api/dashboard?logged_on=${encodeURIComponent(state.selectedDate)}`);
   renderDashboard();
   await loadAnalytics();
+  document.dispatchEvent(new CustomEvent('nutritrack:dashboard-loaded', { detail: { date: state.selectedDate } }));
 }
 
 function formatRange(range) {
