@@ -24,7 +24,7 @@ class Settings(BaseSettings):
 
     # --- Optional AI photo analysis ---
     OPENAI_API_KEY: str | None = None
-    OPENAI_VISION_MODEL: str = "gpt-6-luna"
+    OPENAI_VISION_MODEL: str = "gpt-5.4-mini"
 
     class Config:
         env_file = ".env"
