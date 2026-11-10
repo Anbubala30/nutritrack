@@ -787,6 +787,7 @@ function populateQuickFoods() {
 
 function resetQuickFoodCalculator() {
   elements.quickFood.value = '';
+  elements.customFood.value = '';
   elements.quickFoodQuantity.value = '1';
   elements.quickFoodQuantityLabel.textContent = 'Quantity';
   setMessage(elements.quickFoodStatus);
@@ -919,7 +920,10 @@ document.querySelectorAll('[data-open-meal]').forEach((button) => button.addEven
 document.getElementById('close-meal-dialog').addEventListener('click', () => elements.mealDialog.close());
 document.getElementById('cancel-meal').addEventListener('click', () => elements.mealDialog.close());
 elements.mealForm.addEventListener('submit', submitMeal);
-elements.quickFood.addEventListener('change', updateQuickFoodCalculator);
+elements.quickFood.addEventListener('change', () => {
+  elements.customFood.value = '';
+  updateQuickFoodCalculator();
+});
 elements.quickFoodQuantity.addEventListener('input', () => {
   if (elements.customFood.value) applyCustomFood();
   else updateQuickFoodCalculator();
