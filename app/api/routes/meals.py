@@ -5,7 +5,7 @@ import re
 from datetime import date, datetime, time, timedelta, timezone
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
-from openai import OpenAI
+from openai import AuthenticationError, BadRequestError, OpenAI, PermissionDeniedError, RateLimitError
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
@@ -125,6 +125,26 @@ async def analyze_food_photo(
         if not json_match:
             raise ValueError("No JSON object was returned.")
         return FoodPhotoEstimate.model_validate(json.loads(json_match.group(0)))
+    except AuthenticationError as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="The OpenAI API key was rejected. Add a new active key in the service environment settings.",
+        ) from error
+    except PermissionDeniedError as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="This OpenAI project does not have access to food photo analysis. Check the project and API key permissions.",
+        ) from error
+    except RateLimitError as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="OpenAI could not process this request yet. Check the API billing balance, then try again.",
+        ) from error
+    except BadRequestError as error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="OpenAI could not process this photo. Choose a clear JPG, PNG, or WEBP food photo and try again.",
+        ) from error
     except Exception as error:
         if isinstance(error, (json.JSONDecodeError, ValueError)):
             raise HTTPException(
