@@ -10,9 +10,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="stylesheet" href="/static/monthly-analytics.css">
+    <link rel="stylesheet" href="/static/planner.css">
     <script defer src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
     <script defer src="/static/app.js"></script>
     <script defer src="/static/monthly-analytics.js"></script>
+    <script defer src="/static/planner.js"></script>
   </head>
   <body>
     <div id="auth-screen" class="auth-screen">
@@ -73,6 +75,7 @@
           <button class="nav-button is-active" type="button" data-view="dashboard" aria-current="page"><i data-lucide="layout-dashboard" aria-hidden="true"></i><span>Dashboard</span></button>
           <button class="nav-button" type="button" data-view="meals"><i data-lucide="utensils" aria-hidden="true"></i><span>Meals</span></button>
           <button class="nav-button" type="button" data-view="coach"><i data-lucide="sparkles" aria-hidden="true"></i><span>AI Coach</span></button>
+          <button class="nav-button" type="button" data-view="planner"><i data-lucide="calendar-days" aria-hidden="true"></i><span>Meal planner</span></button>
           <button class="nav-button" type="button" data-view="activity"><i data-lucide="person-standing" aria-hidden="true"></i><span>Activity</span></button>
           <button class="nav-button" type="button" data-view="weight"><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i><span>Weight</span></button>
           <button class="nav-button" type="button" data-view="profile"><i data-lucide="settings-2" aria-hidden="true"></i><span>My plan</span></button>
@@ -289,6 +292,23 @@
           <section class="weight-history"><div class="panel-heading"><div><p class="section-kicker">History</p><h3>Recent entries</h3></div></div><div id="weight-list" class="weight-list"></div></section>
         </section>
 
+        <section id="planner-view" class="view-section planner-view" hidden>
+          <div class="view-heading"><div><p class="section-kicker">Ahead of time</p><h2>Meal planner</h2></div></div>
+          <div class="planner-layout">
+            <form id="planner-form" class="planner-form">
+              <label class="field field-wide"><span>Plan for</span><input id="planner-date" type="date" required></label>
+              <label class="field field-wide"><span>Meal name</span><input id="planner-name" type="text" maxlength="120" required placeholder="e.g. Chicken rice bowl"></label>
+              <label class="field"><span>Meal type</span><select id="planner-type"><option value="breakfast">Breakfast</option><option value="lunch">Lunch</option><option value="dinner">Dinner</option><option value="snack">Snack</option></select></label>
+              <label class="field"><span>Calories</span><input id="planner-calories" type="number" min="0" max="5000" required inputmode="numeric"></label>
+              <label class="field"><span>Protein (g)</span><input id="planner-protein" type="number" min="0" max="500" step="0.1" value="0" required inputmode="decimal"></label>
+              <label class="field"><span>Carbs (g)</span><input id="planner-carbs" type="number" min="0" max="1000" step="0.1" value="0" required inputmode="decimal"></label>
+              <label class="field"><span>Fat (g)</span><input id="planner-fat" type="number" min="0" max="500" step="0.1" value="0" required inputmode="decimal"></label>
+              <p id="planner-error" class="form-error field-wide" role="alert" hidden></p>
+              <button id="planner-save" class="primary-button compact-button field-wide" type="submit"><i data-lucide="calendar-plus" aria-hidden="true"></i>Add to plan</button>
+            </form>
+            <section class="planner-list-panel" aria-labelledby="planned-list-title"><div><p class="section-kicker">Scheduled meals</p><h3 id="planned-list-title">Your plan</h3></div><div id="planned-meal-list" class="planned-meal-list"></div></section>
+          </div>
+        </section>
         <section id="profile-view" class="view-section plan-view" hidden>
           <div class="view-heading">
             <div>
