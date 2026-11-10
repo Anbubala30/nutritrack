@@ -10,7 +10,8 @@ from app.models.activity import ActivityLog
 from app.models.meal import Meal
 from app.models.user import User
 from app.models.water import WaterLog
-from app.schemas.analytics import WeeklyDaySummary, WeeklySummaryResponse
+from app.models.weight import WeightLog
+from app.schemas.analytics import MonthlySummaryResponse, WeeklyDaySummary, WeeklySummaryResponse
 
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 
@@ -19,16 +20,13 @@ def _day_key(value: date | str) -> str:
     return value.isoformat() if isinstance(value, date) else str(value)
 
 
-@router.get("/week", response_model=WeeklySummaryResponse)
-def weekly_summary(
-    end_date: date | None = None,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    end_date = end_date or date.today()
-    start_date = end_date - timedelta(days=6)
+def _daily_data(
+    start_date: date,
+    end_date: date,
+    current_user: User,
+    db: Session,
+) -> list[WeeklyDaySummary]:
     meal_day = func.date(Meal.logged_at).label("logged_on")
-
     meal_rows = (
         db.query(
             meal_day,
@@ -78,7 +76,7 @@ def weekly_summary(
     }
 
     days = []
-    for offset in range(7):
+    for offset in range((end_date - start_date).days + 1):
         day = start_date + timedelta(days=offset)
         key = day.isoformat()
         meal = meal_by_day.get(key, {})
@@ -93,11 +91,61 @@ def weekly_summary(
                 calories_burned=activity.get("calories_burned", 0),
             )
         )
+    return days
 
+
+@router.get("/week", response_model=WeeklySummaryResponse)
+def weekly_summary(
+    end_date: date | None = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    end_date = end_date or date.today()
+    days = _daily_data(end_date - timedelta(days=6), end_date, current_user, db)
     return WeeklySummaryResponse(
         days=days,
         average_calories=round(sum(day.calories for day in days) / len(days)),
         average_water_ml=round(sum(day.water_ml for day in days) / len(days)),
         total_activity_minutes=sum(day.activity_minutes for day in days),
         total_calories_burned=sum(day.calories_burned for day in days),
+    )
+
+
+@router.get("/month", response_model=MonthlySummaryResponse)
+def monthly_summary(
+    end_date: date | None = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    end_date = end_date or date.today()
+    start_date = end_date - timedelta(days=29)
+    days = _daily_data(start_date, end_date, current_user, db)
+    weight_rows = (
+        db.query(WeightLog.logged_on, WeightLog.weight_kg)
+        .filter(
+            WeightLog.user_id == current_user.id,
+            WeightLog.logged_on >= start_date,
+            WeightLog.logged_on <= end_date,
+        )
+        .order_by(WeightLog.logged_on)
+        .all()
+    )
+    active_days = sum(
+        1
+        for day in days
+        if day.calories or day.water_ml or day.activity_minutes
+    )
+    return MonthlySummaryResponse(
+        start_date=start_date,
+        end_date=end_date,
+        days=days,
+        average_calories=round(sum(day.calories for day in days) / len(days)),
+        average_water_ml=round(sum(day.water_ml for day in days) / len(days)),
+        total_activity_minutes=sum(day.activity_minutes for day in days),
+        total_calories_burned=sum(day.calories_burned for day in days),
+        active_days=active_days,
+        weight_entries=[
+            {"logged_on": row.logged_on, "weight_kg": round(float(row.weight_kg), 1)}
+            for row in weight_rows
+        ],
     )
