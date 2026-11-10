@@ -25,7 +25,7 @@
     if (!meals.length) {
       list.innerHTML = '<div class="empty-state"><span><i data-lucide="calendar-plus" aria-hidden="true"></i>No meals planned for this day yet.</span></div>';
     } else {
-      list.innerHTML = meals.map((meal) => '<article class="planned-meal-row"><span class="planned-meal-type">' + escapeHtml(meal.meal_type) + '</span><div><p class="meal-name">' + escapeHtml(meal.name) + '</p><p class="meal-meta">' + meal.calories + ' kcal · ' + meal.protein_g + ' g protein</p></div><button class="icon-button delete-planned-meal" type="button" data-plan-id="' + meal.id + '" aria-label="Remove planned ' + escapeHtml(meal.name) + '"><i data-lucide="trash-2" aria-hidden="true"></i></button></article>').join('');
+      list.innerHTML = meals.map((meal) => '<article class="planned-meal-row"><span class="planned-meal-type">' + escapeHtml(meal.meal_type) + '</span><div><p class="meal-name">' + escapeHtml(meal.name) + '</p><p class="meal-meta">' + meal.calories + ' kcal · ' + meal.protein_g + ' g protein</p></div><div class="planned-meal-actions"><button class="text-button log-planned-meal" type="button" data-plan-id="' + meal.id + '">Log meal</button><button class="icon-button delete-planned-meal" type="button" data-plan-id="' + meal.id + '" aria-label="Remove planned ' + escapeHtml(meal.name) + '"><i data-lucide="trash-2" aria-hidden="true"></i></button></div></article>').join('');
     }
     window.lucide?.createIcons({ attrs: { width: 18, height: 18 } });
   }
@@ -68,13 +68,22 @@
   });
 
   list.addEventListener('click', async (event) => {
-    const button = event.target.closest('.delete-planned-meal');
+    const logButton = event.target.closest('.log-planned-meal');
+    const deleteButton = event.target.closest('.delete-planned-meal');
+    const button = logButton || deleteButton;
     if (!button) return;
     try {
-      await api('/api/plans/' + button.dataset.planId, { method: 'DELETE' });
+      if (logButton) {
+        logButton.disabled = true;
+        await api('/api/plans/' + logButton.dataset.planId + '/log', { method: 'POST' });
+      } else {
+        await api('/api/plans/' + deleteButton.dataset.planId, { method: 'DELETE' });
+      }
       await loadPlans();
-    } catch (deleteError) {
-      setError(deleteError.message);
+    } catch (actionError) {
+      setError(actionError.message);
+    } finally {
+      if (logButton) logButton.disabled = false;
     }
   });
 
