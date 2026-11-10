@@ -87,11 +87,14 @@
             <p class="section-kicker">Nutrition log</p>
             <h1 id="page-title">Today's overview</h1>
           </div>
-          <label class="date-field" for="selected-date">
-            <span class="sr-only">Selected day</span>
-            <i data-lucide="calendar-days" aria-hidden="true"></i>
-            <input id="selected-date" type="date">
-          </label>
+          <div class="header-actions">
+            <button id="theme-toggle" class="icon-button theme-toggle" type="button" aria-label="Use dark theme" title="Use dark theme"><i data-lucide="moon" aria-hidden="true"></i></button>
+            <label class="date-field" for="selected-date">
+              <span class="sr-only">Selected day</span>
+              <i data-lucide="calendar-days" aria-hidden="true"></i>
+              <input id="selected-date" type="date">
+            </label>
+          </div>
         </header>
 
         <section id="dashboard-view" class="view-section">
