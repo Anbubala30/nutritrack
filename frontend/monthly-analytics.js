@@ -65,6 +65,6 @@
     }
   }
 
-  document.addEventListener('nutritrack:dashboard-loaded', (event) => loadMonthly(event.detail.date));
-  dateInput.addEventListener('change', () => loadMonthly(dateInput.value));
+  document.addEventListener('nutritrack:progress-open', (event) => loadMonthly(event.detail.date));
+  dateInput.addEventListener('change', () => { if (!section.hidden) loadMonthly(dateInput.value); });
 })();
