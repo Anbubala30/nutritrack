@@ -326,6 +326,18 @@
           <p id="meal-photo-status" class="form-error meal-photo-status" role="status" hidden></p>
         </section>
 
+        <section class="quick-food-section" aria-labelledby="quick-food-title">
+          <div class="quick-food-heading">
+            <p id="quick-food-title" class="section-kicker">Quick food calculator</p>
+            <p class="quick-food-note">Choose a food and quantity to fill the meal automatically.</p>
+          </div>
+          <div class="quick-food-controls">
+            <label class="field"><span>Food</span><select id="quick-food"><option value="">Choose a common food</option></select></label>
+            <label class="field"><span id="quick-food-quantity-label">Quantity</span><input id="quick-food-quantity" type="number" min="0.25" step="0.25" value="1" inputmode="decimal"></label>
+          </div>
+          <p id="quick-food-status" class="quick-food-status" role="status" hidden></p>
+        </section>
+
         <section id="meal-suggestions" class="meal-suggestions" hidden aria-labelledby="meal-suggestions-title">
           <p id="meal-suggestions-title" class="section-kicker">Recent foods</p>
           <div id="meal-suggestion-list" class="meal-suggestion-list"></div>

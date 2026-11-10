@@ -18,6 +18,21 @@ const state = {
   user: null,
 };
 
+const QUICK_FOODS = [
+  { id: 'egg', name: 'egg', unit: 'egg', pluralUnit: 'eggs', calories: 72, protein: 6.3, carbs: 0.4, fat: 4.8 },
+  { id: 'egg-white', name: 'egg white', unit: 'white', pluralUnit: 'whites', calories: 17, protein: 3.6, carbs: 0.2, fat: 0.1 },
+  { id: 'rice', name: 'cooked rice', unit: 'cup', pluralUnit: 'cups', calories: 205, protein: 4.3, carbs: 44.5, fat: 0.4 },
+  { id: 'roti', name: 'roti', unit: 'roti', pluralUnit: 'rotis', calories: 120, protein: 3, carbs: 18, fat: 3 },
+  { id: 'chicken', name: 'chicken breast', unit: 'portion', pluralUnit: 'portions', calories: 165, protein: 31, carbs: 0, fat: 3.6 },
+  { id: 'dal', name: 'cooked dal', unit: 'cup', pluralUnit: 'cups', calories: 230, protein: 18, carbs: 40, fat: 1 },
+  { id: 'paneer', name: 'paneer', unit: 'portion', pluralUnit: 'portions', calories: 265, protein: 18, carbs: 1.2, fat: 20 },
+  { id: 'oats', name: 'oats', unit: 'serving', pluralUnit: 'servings', calories: 150, protein: 5, carbs: 27, fat: 3 },
+  { id: 'milk', name: 'whole milk', unit: 'cup', pluralUnit: 'cups', calories: 149, protein: 8, carbs: 12, fat: 8 },
+  { id: 'banana', name: 'banana', unit: 'banana', pluralUnit: 'bananas', calories: 105, protein: 1.3, carbs: 27, fat: 0.4 },
+  { id: 'apple', name: 'apple', unit: 'apple', pluralUnit: 'apples', calories: 95, protein: 0.5, carbs: 25, fat: 0.3 },
+  { id: 'greek-yogurt', name: 'Greek yogurt', unit: 'serving', pluralUnit: 'servings', calories: 130, protein: 17, carbs: 6, fat: 0.5 },
+];
+
 const elements = {
   appShell: document.getElementById('app-shell'),
   authScreen: document.getElementById('auth-screen'),
@@ -37,6 +52,10 @@ const elements = {
   mealError: document.getElementById('meal-error'),
   mealSuggestions: document.getElementById('meal-suggestions'),
   mealSuggestionList: document.getElementById('meal-suggestion-list'),
+  quickFood: document.getElementById('quick-food'),
+  quickFoodQuantity: document.getElementById('quick-food-quantity'),
+  quickFoodQuantityLabel: document.getElementById('quick-food-quantity-label'),
+  quickFoodStatus: document.getElementById('quick-food-status'),
   mealPhoto: document.getElementById('meal-photo'),
   analyzeMealPhoto: document.getElementById('analyze-meal-photo'),
   mealPhotoPreviewWrap: document.getElementById('meal-photo-preview-wrap'),
@@ -658,6 +677,57 @@ async function loadMealSuggestions() {
   }
 }
 
+function formatFoodQuantity(quantity) {
+  return Number.isInteger(quantity) ? String(quantity) : String(round(quantity));
+}
+
+function getQuickFood() {
+  return QUICK_FOODS.find((food) => food.id === elements.quickFood.value);
+}
+
+function updateQuickFoodCalculator() {
+  const food = getQuickFood();
+  const quantity = Number(elements.quickFoodQuantity.value);
+  setMessage(elements.quickFoodStatus);
+
+  if (!food) {
+    elements.quickFoodQuantityLabel.textContent = 'Quantity';
+    return;
+  }
+
+  elements.quickFoodQuantityLabel.textContent = `Quantity (${food.unit})`;
+  if (!Number.isFinite(quantity) || quantity <= 0) return;
+
+  const displayUnit = quantity === 1 ? food.unit : food.pluralUnit;
+  const unitIsFoodName = food.name === food.unit || food.name === food.pluralUnit;
+  const displayName = unitIsFoodName
+    ? `${formatFoodQuantity(quantity)} ${displayUnit}`
+    : `${formatFoodQuantity(quantity)} ${displayUnit} ${food.name}`;
+  document.getElementById('meal-name').value = displayName;
+  document.getElementById('meal-calories').value = String(Math.round(food.calories * quantity));
+  document.getElementById('meal-protein').value = String(round(food.protein * quantity));
+  document.getElementById('meal-carbs').value = String(round(food.carbs * quantity));
+  document.getElementById('meal-fat').value = String(round(food.fat * quantity));
+  setMessage(
+    elements.quickFoodStatus,
+    `Filled for ${displayName}: ${Math.round(food.calories * quantity)} kcal, ${round(food.protein * quantity)} g protein, ${round(food.carbs * quantity)} g carbs, and ${round(food.fat * quantity)} g fat.`,
+  );
+}
+
+function populateQuickFoods() {
+  elements.quickFood.insertAdjacentHTML(
+    'beforeend',
+    QUICK_FOODS.map((food) => `<option value="${food.id}">${escapeHtml(food.name)} · ${food.calories} kcal per ${food.unit}</option>`).join(''),
+  );
+}
+
+function resetQuickFoodCalculator() {
+  elements.quickFood.value = '';
+  elements.quickFoodQuantity.value = '1';
+  elements.quickFoodQuantityLabel.textContent = 'Quantity';
+  setMessage(elements.quickFoodStatus);
+}
+
 function applyMealSuggestion(index) {
   const meal = state.mealSuggestions[Number(index)];
   if (!meal) return;
@@ -674,6 +744,7 @@ function openMealDialog() {
   setMessage(elements.mealError);
   elements.mealForm.reset();
   clearMealPhoto();
+  resetQuickFoodCalculator();
   document.getElementById('meal-protein').value = '0';
   document.getElementById('meal-carbs').value = '0';
   document.getElementById('meal-fat').value = '0';
@@ -783,6 +854,8 @@ document.querySelectorAll('[data-open-meal]').forEach((button) => button.addEven
 document.getElementById('close-meal-dialog').addEventListener('click', () => elements.mealDialog.close());
 document.getElementById('cancel-meal').addEventListener('click', () => elements.mealDialog.close());
 elements.mealForm.addEventListener('submit', submitMeal);
+elements.quickFood.addEventListener('change', updateQuickFoodCalculator);
+elements.quickFoodQuantity.addEventListener('input', updateQuickFoodCalculator);
 elements.mealPhoto.addEventListener('change', handleMealPhotoChange);
 elements.analyzeMealPhoto.addEventListener('click', analyzeMealPhoto);
 elements.profileForm.addEventListener('submit', saveProfile);
@@ -805,6 +878,7 @@ document.addEventListener('click', (event) => {
   if (applyCoachTargetButton) applyCoachTarget();
 });
 
+populateQuickFoods();
 setAuthMode('login');
 document.getElementById('weight-date').value = state.selectedDate;
 if (state.token) loadApp(); else showAuth();
