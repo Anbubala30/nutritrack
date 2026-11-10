@@ -207,7 +207,7 @@ function setViewBusy(viewName, isBusy) {
 }
 
 function setView(viewName) {
-  const titles = { dashboard: "Today's overview", meals: 'Meals', coach: 'AI Coach', activity: 'Activity tracker', weight: 'Weight tracker', planner: 'Meal planner', profile: 'My plan' };
+  const titles = { dashboard: "Today's overview", meals: 'Meals', coach: 'AI Coach', activity: 'Activity tracker', weight: 'Weight tracker', planner: 'Meal planner', progress: 'Progress', profile: 'My plan' };
   document.querySelectorAll('.view-section').forEach((section) => { section.hidden = section.id !== `${viewName}-view`; });
   document.querySelectorAll('[data-view]').forEach((button) => {
     const active = button.dataset.view === viewName;
@@ -219,6 +219,7 @@ function setView(viewName) {
   if (viewName === 'activity') void loadActivityHistory();
   if (viewName === 'weight') void loadWeightHistory();
   if (viewName === 'planner') document.dispatchEvent(new Event('nutritrack:planner-open'));
+  if (viewName === 'progress') document.dispatchEvent(new CustomEvent('nutritrack:progress-open', { detail: { date: state.selectedDate } }));
 }
 
 function defaultProfile() {
