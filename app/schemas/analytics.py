@@ -18,3 +18,20 @@ class WeeklySummaryResponse(BaseModel):
     average_water_ml: int
     total_activity_minutes: int
     total_calories_burned: int
+
+
+class MonthlyWeightPoint(BaseModel):
+    logged_on: date
+    weight_kg: float
+
+
+class MonthlySummaryResponse(BaseModel):
+    start_date: date
+    end_date: date
+    days: list[WeeklyDaySummary]
+    average_calories: int
+    average_water_ml: int
+    total_activity_minutes: int
+    total_calories_burned: int
+    active_days: int
+    weight_entries: list[MonthlyWeightPoint]

@@ -9,8 +9,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/monthly-analytics.css">
     <script defer src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
     <script defer src="/static/app.js"></script>
+    <script defer src="/static/monthly-analytics.js"></script>
   </head>
   <body>
     <div id="auth-screen" class="auth-screen">
@@ -196,6 +198,27 @@
           <div id="weekly-days" class="weekly-days" aria-live="polite"></div>
           </section>
         </section>
+
+          <section id="monthly-section" class="monthly-section" aria-labelledby="monthly-title">
+            <div class="panel-heading">
+              <div>
+                <p class="section-kicker">Monthly progress</p>
+                <h2 id="monthly-title">Your last 30 days</h2>
+              </div>
+              <p id="monthly-range" class="monthly-range"></p>
+            </div>
+            <div class="monthly-summary-grid" aria-label="Monthly progress summary">
+              <article class="monthly-stat"><p class="section-kicker">Average food</p><strong id="monthly-calorie-average">0 kcal</strong><p class="metric-detail">calories per day</p></article>
+              <article class="monthly-stat"><p class="section-kicker">Consistency</p><strong id="monthly-active-days">0 of 30</strong><p class="metric-detail">days with a log</p></article>
+              <article class="monthly-stat"><p class="section-kicker">Movement</p><strong id="monthly-activity-total">0 min</strong><p id="monthly-burn-total" class="metric-detail">0 kcal estimated burn</p></article>
+              <article class="monthly-stat"><p class="section-kicker">Weight trend</p><strong id="monthly-weight-change">--</strong><p id="monthly-weight-note" class="metric-detail">Log weight check-ins to see a monthly trend.</p></article>
+            </div>
+            <div class="monthly-chart-panel">
+              <p class="section-kicker">Daily calories</p>
+              <div id="monthly-chart" class="monthly-chart" aria-label="Daily calories during the past 30 days"></div>
+              <p id="monthly-empty" class="monthly-empty" hidden>Monthly progress will appear as you log meals, water, activity, and weight.</p>
+            </div>
+          </section>
 
         <section id="meals-view" class="view-section" hidden>
           <div class="view-heading">
