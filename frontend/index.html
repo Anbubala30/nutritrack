@@ -338,6 +338,15 @@
           <p id="quick-food-status" class="quick-food-status" role="status" hidden></p>
         </section>
 
+        <section class="saved-food-section" aria-labelledby="saved-food-title">
+          <div class="saved-food-heading">
+            <p id="saved-food-title" class="section-kicker">My saved foods</p>
+            <button id="save-custom-food" class="text-button" type="button">Save current food <i data-lucide="bookmark-plus" aria-hidden="true"></i></button>
+          </div>
+          <label class="field"><span>Saved food</span><select id="custom-food"><option value="">Choose a saved food</option></select></label>
+          <p id="custom-food-status" class="quick-food-status" role="status" hidden></p>
+        </section>
+
         <section id="meal-suggestions" class="meal-suggestions" hidden aria-labelledby="meal-suggestions-title">
           <p id="meal-suggestions-title" class="section-kicker">Recent foods</p>
           <div id="meal-suggestion-list" class="meal-suggestion-list"></div>

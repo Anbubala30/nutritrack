@@ -2,6 +2,7 @@ const state = {
   authMode: 'login',
   dashboard: null,
   mealSuggestions: [],
+  customFoods: [],
   mealPhotoPreviewUrl: null,
   coach: null,
   coachRequest: 0,
@@ -56,6 +57,9 @@ const elements = {
   quickFoodQuantity: document.getElementById('quick-food-quantity'),
   quickFoodQuantityLabel: document.getElementById('quick-food-quantity-label'),
   quickFoodStatus: document.getElementById('quick-food-status'),
+  customFood: document.getElementById('custom-food'),
+  customFoodStatus: document.getElementById('custom-food-status'),
+  saveCustomFood: document.getElementById('save-custom-food'),
   mealPhoto: document.getElementById('meal-photo'),
   analyzeMealPhoto: document.getElementById('analyze-meal-photo'),
   mealPhotoPreviewWrap: document.getElementById('meal-photo-preview-wrap'),
@@ -677,6 +681,66 @@ async function loadMealSuggestions() {
   }
 }
 
+async function loadCustomFoods() {
+  try {
+    state.customFoods = await api('/api/foods');
+  } catch {
+    state.customFoods = [];
+  }
+  elements.customFood.innerHTML = '<option value="">Choose a saved food</option>' + state.customFoods
+    .map((food) => `<option value="${food.id}">${escapeHtml(food.name)} · ${food.calories} kcal per ${escapeHtml(food.serving_label)}</option>`)
+    .join('');
+}
+
+async function saveCurrentFood() {
+  const name = document.getElementById('meal-name').value.trim();
+  if (!name) {
+    setMessage(elements.customFoodStatus, 'Add a meal name and nutrition values first.');
+    return;
+  }
+
+  elements.saveCustomFood.disabled = true;
+  try {
+    const food = await api('/api/foods', {
+      method: 'POST',
+      body: JSON.stringify({
+        name,
+        serving_label: 'serving',
+        calories: Number(document.getElementById('meal-calories').value),
+        protein_g: Number(document.getElementById('meal-protein').value),
+        carbs_g: Number(document.getElementById('meal-carbs').value),
+        fat_g: Number(document.getElementById('meal-fat').value),
+      }),
+    });
+    await loadCustomFoods();
+    elements.customFood.value = String(food.id);
+    setMessage(elements.customFoodStatus, `${food.name} saved. Select it anytime and set a quantity.`);
+  } catch (error) {
+    setMessage(elements.customFoodStatus, error.message);
+  } finally {
+    elements.saveCustomFood.disabled = false;
+  }
+}
+
+function applyCustomFood() {
+  const food = state.customFoods.find((item) => String(item.id) === elements.customFood.value);
+  const quantity = Number(elements.quickFoodQuantity.value);
+  setMessage(elements.customFoodStatus);
+  if (!food || !Number.isFinite(quantity) || quantity <= 0) return;
+
+  elements.quickFood.value = '';
+  elements.quickFoodQuantityLabel.textContent = `Quantity (${food.serving_label})`;
+  const displayName = quantity === 1
+    ? food.name
+    : `${formatFoodQuantity(quantity)} servings ${food.name}`;
+  document.getElementById('meal-name').value = displayName;
+  document.getElementById('meal-calories').value = String(Math.round(food.calories * quantity));
+  document.getElementById('meal-protein').value = String(round(food.protein_g * quantity));
+  document.getElementById('meal-carbs').value = String(round(food.carbs_g * quantity));
+  document.getElementById('meal-fat').value = String(round(food.fat_g * quantity));
+  setMessage(elements.customFoodStatus, `Filled for ${displayName}.`);
+}
+
 function formatFoodQuantity(quantity) {
   return Number.isInteger(quantity) ? String(quantity) : String(round(quantity));
 }
@@ -723,6 +787,7 @@ function populateQuickFoods() {
 
 function resetQuickFoodCalculator() {
   elements.quickFood.value = '';
+  elements.customFood.value = '';
   elements.quickFoodQuantity.value = '1';
   elements.quickFoodQuantityLabel.textContent = 'Quantity';
   setMessage(elements.quickFoodStatus);
@@ -755,6 +820,7 @@ function openMealDialog() {
   elements.mealDialog.showModal();
   document.getElementById('meal-name').focus();
   void loadMealSuggestions();
+  void loadCustomFoods();
 }
 
 async function submitMeal(event) {
@@ -854,8 +920,16 @@ document.querySelectorAll('[data-open-meal]').forEach((button) => button.addEven
 document.getElementById('close-meal-dialog').addEventListener('click', () => elements.mealDialog.close());
 document.getElementById('cancel-meal').addEventListener('click', () => elements.mealDialog.close());
 elements.mealForm.addEventListener('submit', submitMeal);
-elements.quickFood.addEventListener('change', updateQuickFoodCalculator);
-elements.quickFoodQuantity.addEventListener('input', updateQuickFoodCalculator);
+elements.quickFood.addEventListener('change', () => {
+  elements.customFood.value = '';
+  updateQuickFoodCalculator();
+});
+elements.quickFoodQuantity.addEventListener('input', () => {
+  if (elements.customFood.value) applyCustomFood();
+  else updateQuickFoodCalculator();
+});
+elements.customFood.addEventListener('change', applyCustomFood);
+elements.saveCustomFood.addEventListener('click', saveCurrentFood);
 elements.mealPhoto.addEventListener('change', handleMealPhotoChange);
 elements.analyzeMealPhoto.addEventListener('click', analyzeMealPhoto);
 elements.profileForm.addEventListener('submit', saveProfile);

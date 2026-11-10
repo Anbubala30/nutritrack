@@ -40,3 +40,18 @@ class FoodPhotoEstimate(BaseModel):
     confidence: Literal["low", "medium", "high"]
     note: str = Field(max_length=500)
 
+
+
+class CustomFoodCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    serving_label: str = Field(default="serving", min_length=1, max_length=40)
+    calories: int = Field(ge=0, le=5000)
+    protein_g: float = Field(default=0, ge=0, le=500)
+    carbs_g: float = Field(default=0, ge=0, le=1000)
+    fat_g: float = Field(default=0, ge=0, le=500)
+
+
+class CustomFoodResponse(CustomFoodCreate):
+    id: int
+
+    model_config = ConfigDict(from_attributes=True)
