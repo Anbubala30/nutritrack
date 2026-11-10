@@ -748,3 +748,161 @@ button:focus-visible, input:focus-visible, select:focus-visible {
     flex-direction: column;
   }
 }
+
+
+/* Final visual system: deliberate motion, a persistent theme, and calmer contrast. */
+html {
+  color-scheme: light;
+}
+body,
+.auth-screen,
+.auth-frame,
+.auth-panel,
+.metric-card,
+.nutrition-panel,
+.water-panel,
+.weight-stat,
+.activity-stat,
+.weekly-stat,
+.quick-food-section,
+.saved-food-section,
+.meal-dialog,
+.field input,
+.field select,
+.date-field,
+.icon-button {
+  transition: background-color 220ms ease, border-color 220ms ease, color 180ms ease, box-shadow 220ms ease;
+}
+.header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+.theme-toggle {
+  display: inline-grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid #c7d4ce;
+  border-radius: 7px;
+  color: var(--deep-green);
+  background: var(--paper);
+  box-shadow: 0 3px 10px rgba(23, 61, 53, .04);
+}
+.theme-toggle:hover {
+  border-color: var(--green);
+  color: var(--green);
+  background: var(--soft-green);
+  transform: translateY(-1px);
+}
+.auth-frame {
+  animation: auth-arrive 520ms cubic-bezier(.2, .75, .3, 1) both;
+}
+.meal-dialog[open] {
+  animation: dialog-arrive 220ms cubic-bezier(.2, .75, .3, 1) both;
+}
+.meal-dialog::backdrop {
+  background: rgba(12, 29, 24, .46);
+  backdrop-filter: blur(3px);
+}
+.primary-button:active,
+.secondary-button:active,
+.icon-button:active,
+.theme-toggle:active,
+.nav-button:active {
+  transform: translateY(1px) scale(.98);
+}
+.form-error:not([hidden]),
+.quick-food-status:not([hidden]),
+.meal-photo-status:not([hidden]) {
+  animation: message-arrive 180ms ease-out both;
+}
+@keyframes auth-arrive {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes dialog-arrive {
+  from { opacity: 0; transform: translateY(12px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes message-arrive {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --ink: #e7f0ea;
+  --muted: #a9b9b0;
+  --line: #31473e;
+  --canvas: #132019;
+  --paper: #1b2b23;
+  --deep-green: #102f26;
+  --green: #68c59e;
+  --soft-green: #1e3e32;
+  --blue: #73b9dc;
+  --soft-blue: #1b3644;
+  --coral: #eb9a86;
+  --soft-coral: #442c28;
+  --gold: #e0bb68;
+  --soft-gold: #40351e;
+}
+html[data-theme="dark"] .auth-screen { background: #101b16; }
+html[data-theme="dark"] .auth-frame { border-color: #365044; box-shadow: 0 24px 65px rgba(0, 0, 0, .35); }
+html[data-theme="dark"] .auth-panel { background: #1b2b23; }
+html[data-theme="dark"] .auth-brand { background: #103328; }
+html[data-theme="dark"] .field input,
+html[data-theme="dark"] .field select,
+html[data-theme="dark"] .coach-field select,
+html[data-theme="dark"] .date-field,
+html[data-theme="dark"] .theme-toggle,
+html[data-theme="dark"] .secondary-button,
+html[data-theme="dark"] .photo-picker,
+html[data-theme="dark"] .meal-suggestion {
+  border-color: #496257;
+  color: var(--ink);
+  background: #1c2d25;
+}
+html[data-theme="dark"] .field input::placeholder { color: #91a59a; }
+html[data-theme="dark"] .quick-food-section,
+html[data-theme="dark"] .saved-food-section,
+html[data-theme="dark"] .meal-photo-section { border-color: #40584d; background: #1a2b23; }
+html[data-theme="dark"] .quick-food-status,
+html[data-theme="dark"] .coach-check-in-answer { color: #cbe9db; background: #1d3e32; }
+html[data-theme="dark"] .metric-card,
+html[data-theme="dark"] .nutrition-panel,
+html[data-theme="dark"] .water-panel,
+html[data-theme="dark"] .weight-stat,
+html[data-theme="dark"] .activity-stat,
+html[data-theme="dark"] .weekly-stat { border-color: #385044; background: var(--paper); }
+html[data-theme="dark"] .metric-card:hover,
+html[data-theme="dark"] .coach-estimate:hover,
+html[data-theme="dark"] .macro-guide:hover,
+html[data-theme="dark"] .weight-stat:hover,
+html[data-theme="dark"] .activity-stat:hover,
+html[data-theme="dark"] .weekly-stat:hover { border-color: #527567; }
+html[data-theme="dark"] .meal-row:hover,
+html[data-theme="dark"] .weight-row:hover,
+html[data-theme="dark"] .activity-row:hover,
+html[data-theme="dark"] .weekly-day:hover { background: #22362c; }
+html[data-theme="dark"] .empty-state,
+html[data-theme="dark"] .meal-meta,
+html[data-theme="dark"] .weight-row p,
+html[data-theme="dark"] .activity-row p { color: var(--muted); }
+html[data-theme="dark"] .progress-track { background: #31463a; }
+html[data-theme="dark"] .theme-toggle:hover { background: #264c3d; }
+html[data-theme="dark"] .meal-dialog::backdrop { background: rgba(0, 0, 0, .68); }
+
+@media (max-width: 680px) {
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .theme-toggle {
+    width: 40px;
+    height: 40px;
+  }
+  .meal-dialog[open] {
+    animation-duration: 180ms;
+  }
+}
