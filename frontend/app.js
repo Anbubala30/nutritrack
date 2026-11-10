@@ -699,7 +699,10 @@ function updateQuickFoodCalculator() {
   if (!Number.isFinite(quantity) || quantity <= 0) return;
 
   const displayUnit = quantity === 1 ? food.unit : food.pluralUnit;
-  const displayName = `${formatFoodQuantity(quantity)} ${displayUnit} ${food.name}`.replace(/\b(egg|roti|banana|apple) \1$/, '$1');
+  const unitIsFoodName = food.name === food.unit || food.name === food.pluralUnit;
+  const displayName = unitIsFoodName
+    ? `${formatFoodQuantity(quantity)} ${displayUnit}`
+    : `${formatFoodQuantity(quantity)} ${displayUnit} ${food.name}`;
   document.getElementById('meal-name').value = displayName;
   document.getElementById('meal-calories').value = String(Math.round(food.calories * quantity));
   document.getElementById('meal-protein').value = String(round(food.protein * quantity));
